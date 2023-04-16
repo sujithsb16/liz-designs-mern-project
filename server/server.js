@@ -1,31 +1,58 @@
 const express = require("express");
 const dotenv = require("dotenv");
-const notes = [
-  {
-    _id: "1",
-    title: "Day 1 of college",
-    category: "College",
-  },
-  {
-    _id: "2",
-    title: "Day 2 of college",
-    category: "College",
-  },
-];
+const cors = require("cors")
+const db = require("./config/db.js");
+const userRoutes = require("./routes/userRoutes");
+const adminRoutes = require("./routes/adminRoutes");
+const venderRoutes = require("./routes/venderRoutes");
+const { notFound, errorHandler } = require("./middlewares/errorMiddleware.js");
+
 
 const app = express();
+dotenv.config();
+db.connectDB();
+app.use(express.json());
+const corsOptions = {
+    origin: "http://localhost:3000",
+    credentials: true,
+    optionSuccessStatus: 200,
+};
+app.use(cors(corsOptions));
 
-app.get("/", (req, res) => {
-  res.send("API is running");
-});
-app.get("/api/notes", (req, res) => {
-  res.json(notes);
-});
+app.use("/users", userRoutes);
+app.use("/admin",adminRoutes)
+app.use("/vender", venderRoutes);
 
-app.get("/api/notes/:id", (req, res) => {
-  const note = notes.find((e) => e._id === req.params.id);
-  res.json(note);
-});
+    
+
+app.use(notFound);
+app.use(errorHandler);
+
+// app.get("/", (req, res) => {
+//   res.send("API is running");
+// });
+// app.get("/api/notes", (req, res) => {
+//   res.json(notes);
+// });
+
+// app.get("/api/notes/:id", (req, res) => {
+//   const note = notes.find((e) => e._id === req.params.id);
+//   res.json(note);
+// });
+
+const allowedHosts = ["example.com", "localhost", "127.0.0.1"];
+
+// Set up a catch-all route for the development server
+// app.use((req, res, next) => {
+//   // Allow cross-origin requests from the specified hosts
+//   if (allowedHosts.includes(req.hostname)) {
+//     res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
+//     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+//     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+//     res.setHeader('Access-Control-Allow-Credentials', 'true');
+//   }
+//   next();
+// });
 
 const PORT = process.env.PORT || 4000;
 
