@@ -14,29 +14,18 @@ import Typography from "@mui/material/Typography";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { adminLogin } from "../../actions/adminActions";
+
 import Loading from '../../Components/Loading';
+import { loginSchema } from '../../schema/Validation';
+import { useFormik } from 'formik';
+import toast, { Toaster } from "react-hot-toast";
+import { adminLogin } from '../../apiCalls/adminApiCalls';
+import { setAdminLogin } from '../../Redux/adminSlice';
 
-
-// function Copyright(props) {
-//   return (
-//     <Typography
-//       variant="body2"
-//       color="text.secondary"
-//       align="center"
-//       {...props}
-//     >
-//       {"Copyright © "}
-//       <Link color="inherit" href="https://mui.com/">
-//         Your Website
-//       </Link>{" "}
-//       {new Date().getFullYear()}
-//       {"."}
-//     </Typography>
-//   );
-// }
-
-
+const initialValues = {
+  email: "",
+  password: "",
+};
 
 
 const theme = createTheme();
@@ -44,27 +33,71 @@ const theme = createTheme();
 const AdminSignIn = () => {
 
 
+  const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+
     const Navigate = useNavigate();
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
 
      const dispatch = useDispatch();
      const adminLogins = useSelector((state) => state.adminLogin);
-     const { loading, error, adminInfo } = adminLogins;
+     const { adminInfo, } = adminLogins;
+
+
+     ////////////validation/////////
+ const { values, errors, touched, handleBlur, handleChange, handleSubmit } =
+   useFormik({
+     initialValues: initialValues,
+     validationSchema: loginSchema,
+     onSubmit: (values) => {
+       submitHandler();
+
+       console.log(values);
+     },
+   });
+   ////////////////////////////////////
 
 
 
 
+    const submitHandler = async() => {
+      
+      try {
+      setLoading(true);
+      console.log("test");
 
+      const adminData = {
+        email: values.email,
+        password: values.password,
+      };
+      console.log(adminData);
 
-    const handleSubmits = (event) => {
-      event.preventDefault();
-       dispatch(adminLogin(email, password));
-       
-       console.log("test");
+      const result = await adminLogin(adminData, setLoading);
 
+      // console.log(result);
 
-      //  console.log(error);
+      if (result.data) {
+        console.log("test 4 ");
+        console.log(result.data);
+        dispatch(
+          setAdminLogin({
+            token: result.data.token,
+            adminInfo: result.data,
+          })
+        );
+      } else {
+        setError(true);
+        setTimeout(() => {
+          setError(false);
+        }, 4000);
+        toast.error(result);
+      }
+
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+      console.log(error.message);
+    }
        
      
     };
@@ -82,6 +115,7 @@ const AdminSignIn = () => {
       <ThemeProvider theme={theme}>
         <Grid container component="main" sx={{ height: "100vh" }}>
           <CssBaseline />
+          <Toaster toasterOptions={{ duratiom: 4000 }} />
           <Grid
             item
             xs={false}
@@ -126,7 +160,7 @@ const AdminSignIn = () => {
               <Box
                 component="form"
                 noValidate
-                onSubmit={handleSubmits}
+                onSubmit={handleSubmit}
                 sx={{ mt: 1 }}
               >
                 <TextField
@@ -134,27 +168,35 @@ const AdminSignIn = () => {
                   required
                   fullWidth
                   id="email"
-                  label="Email Address"
+                  label={
+                    errors.email && touched.email
+                      ? errors.email
+                      : "Email Address"
+                  }
+                  error={errors.email && touched.email ? true : false}
                   name="email"
                   autoComplete="email"
                   autoFocus
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                  }}
+                  value={values.email}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
                 />
                 <TextField
                   margin="normal"
                   required
                   fullWidth
                   name="password"
-                  label="Password"
                   type="password"
                   id="password"
-                  value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value);
-                  }}
+                  error={errors.password && touched.password ? true : false}
+                  label={
+                    errors.password && touched.password
+                      ? errors.password
+                      : "Enter password"
+                  }
+                  value={values.password}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
                 />
                 {/* <FormControlLabel
                   control={<Checkbox value="remember" color="primary" />}
@@ -165,6 +207,7 @@ const AdminSignIn = () => {
                 ) : (
                   <Button
                     type="submit"
+                    disabled={error ? true : false}
                     fullWidth
                     variant="contained"
                     sx={{ mt: 3, mb: 2 }}

@@ -5,6 +5,8 @@ import UserHome from '../../pages/userPages/UserHome';
 import UserShop from '../../pages/userPages/UserShop';
 import UserSign from '../../pages/userPages/UserSign';
 import { useSelector } from 'react-redux';
+import SingleProduct from '../../pages/userPages/SingleProductPage';
+import CartPage from '../../pages/userPages/CartPage';
 const UserRoutes = () => {
 
    const ProtectedRoute = ({ children }) => {
@@ -29,6 +31,8 @@ const UserRoutes = () => {
           <Route path="/shop" element={<UserShop />} />
           <Route path="/usersignin" element={<UserSign />} />
           <Route path="/usersignup" element={<UserRegister />} />
+           <Route path="/singleproduct/:id" element={<SingleProduct/>}/>
+           <Route path="/cart" element={<CartPage/>}/>
 
           <Route
             path=""

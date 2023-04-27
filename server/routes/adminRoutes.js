@@ -1,17 +1,27 @@
 express = require("express");
 const router = express.Router()
-const { adminLogin, venderList, verifyVender, blockVender, userList, blockUser } = require("../controllers/adminController");
 
-const { protect } = require("../middlewares/authMiddleware");
+
+const { adminLogin, vendorList, userList, addCategory, getCategory, userStatusControl, vendorStatusControl, vendorVerifyControl, categoryStatusControl, getAdminProduct, productVerifyControl, productStatusControl } = require("../controllers/adminController");
+
+const { adminProtect } = require("../middlewares/authMiddleware");
 
 
 
 
 router.route("/adminlogin").post(adminLogin);
-router.route("/allvenders").get(protect, venderList);
-router.route("/allusers").get(protect, userList);
-router.route("/verifyvender/:id").patch(protect, verifyVender);
-router.route("/blockvender/:id").patch(protect, blockVender);
-router.route("/blockuser/:id").patch(protect, blockUser);
+router.route("/allvendors").get(adminProtect, vendorList);
+router.route("/allusers").get(adminProtect, userList);
+router.route("/verifyvendor/:id").patch(adminProtect, vendorVerifyControl);
+router.route("/blockvendor/:id").patch(adminProtect, vendorStatusControl);
+router.route("/blockuser/:id").patch(adminProtect, userStatusControl);
+router.route("/blockcategory/:id").patch(adminProtect, categoryStatusControl);
+router.route("/addcategory").post(adminProtect, addCategory );
+router.route("/getcategory").get(adminProtect, getCategory );
+router.route("/getproduct").get(adminProtect, getAdminProduct);
+router.route("/verifyproduct/:id").patch(adminProtect, productVerifyControl);
+router.route("/blockproduct/:id").patch(adminProtect, productStatusControl);
+
+
 
 module.exports = router;

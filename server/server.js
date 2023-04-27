@@ -1,14 +1,18 @@
 const express = require("express");
 const dotenv = require("dotenv");
+const app = express();
 const cors = require("cors")
+
+
 const db = require("./config/db.js");
 const userRoutes = require("./routes/userRoutes");
 const adminRoutes = require("./routes/adminRoutes");
-const venderRoutes = require("./routes/venderRoutes");
+const vendorRoutes = require("./routes/vendorRoutes");
 const { notFound, errorHandler } = require("./middlewares/errorMiddleware.js");
 
+app.use(cors());
+app.use(express.json({ limit: "100mb" }));
 
-const app = express();
 dotenv.config();
 db.connectDB();
 app.use(express.json());
@@ -17,11 +21,11 @@ const corsOptions = {
     credentials: true,
     optionSuccessStatus: 200,
 };
-app.use(cors(corsOptions));
+
 
 app.use("/users", userRoutes);
 app.use("/admin",adminRoutes)
-app.use("/vender", venderRoutes);
+app.use("/vendor", vendorRoutes);
 
     
 

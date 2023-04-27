@@ -18,8 +18,8 @@ import SearchIcon from "@mui/icons-material/Search";
 import { styled, alpha } from "@mui/material/styles";
 import InputBase from "@mui/material/InputBase";
 import { useDispatch, useSelector } from "react-redux";
-import { logout } from "../actions/userActions";;
-// import AdbIcon from '@mui/icons-material/Adb';
+import { setUserLogout } from "../Redux/userSlice";
+
 
 const links = ["/", "/shop"];
 
@@ -28,19 +28,20 @@ const settings = ["Profile", "Logout"];
 
 function Header() {
 
+  let userInfo
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const userLogin = useSelector((state) => state.userLogin);
-  const { userInfo } = userLogin;
+  if(userLogin){
+     userInfo = userLogin.userInfo;
 
-  React.useEffect(() => {
-    console.log(userInfo);
-  })
+    }
+ 
+
 
 const logoutHandler = () => {
-  dispatch(logout());
-  // localStorage.removeItem("userInfo");
+  dispatch(setUserLogout());
   navigate("/");
   console.log(userInfo);
 };
@@ -125,7 +126,6 @@ const loginHandler = () => {
     >
       <Container maxWidth="xl" sx={{ bgcolor: "primary.main" }}>
         <Toolbar disableGutters>
-          {/* <AdbIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} /> */}
           <Typography
             variant="h6"
             noWrap

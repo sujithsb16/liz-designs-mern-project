@@ -1,12 +1,12 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-const adminInfoFromStorage = localStorage.getItem("adminInfo")
-  ? JSON.parse(localStorage.getItem("adminInfo"))
-  : null;
+// const adminInfoFromStorage = localStorage.getItem("adminInfo")
+//   ? JSON.parse(localStorage.getItem("adminInfo"))
+//   : null;
 
   const initialState = {
     loading: false,
-    adminInfo: adminInfoFromStorage,
+    adminInfo: null,
     error: null,
   };
 

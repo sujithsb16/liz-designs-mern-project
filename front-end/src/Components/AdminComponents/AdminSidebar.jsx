@@ -10,10 +10,14 @@ import ListItemText from "@mui/material/ListItemText";
 import MailIcon from "@mui/icons-material/Mail";
 import ContentCutIcon from "@mui/icons-material/ContentCut";
 import Divider from "@mui/material/Divider";
-import { AdminLogout } from '../../actions/adminActions';
+import { AdminLogout, allVendorList } from '../../actions/adminActions';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import LogoutIcon from "@mui/icons-material/Logout";
+import CategoryIcon from "@mui/icons-material/Category";
+import { setAdminLogout } from '../../Redux/adminSlice';
+import ViewCarouselIcon from "@mui/icons-material/ViewCarousel";
+
 
 const AdminSidebar = (props) => {
 
@@ -21,27 +25,37 @@ const AdminSidebar = (props) => {
     const dispatch = useDispatch();
 
     const adminLogoutHandler = (e)=>{
-         dispatch(AdminLogout());
-         navigate("/admin/");
+         dispatch(setAdminLogout());
+        //  navigate("/admin/");
     }
     const adminLogOut = useSelector((state) => state.adminLogin);
     const  adminInfo  = adminLogOut;
+    const adminInf  = useSelector((state) => state.adminLogin.adminInfo);
 
     useEffect(()=>{
         if(!adminInfo.adminInfo){
             navigate("/admin/");
         }else{
-          console.log(adminInfo);
+          console.log(adminInf);
         }
     },[navigate,adminInfo])
-    
+
+    //  useEffect(() => {
+    //    dispatch(allVendorList());
+
+    //    // console.log(allVendor);
+    //  }, [dispatch,]);
+    console.log(props);
+
+      const location = useLocation();
+
 
 
     const drawerWidth = 240;
   return (
     <>
       <Box
-        sx={{ display: "flex", minHeight: "100vh",}}
+        sx={{ display: "flex", justifyContent: "center", minHeight: "100vh" }}
       >
         <CssBaseline />
         <AppBar
@@ -96,13 +110,18 @@ const AdminSidebar = (props) => {
                 { text: "Users", href: "/admin/users" },
                 { text: "Tailors", href: "/admin/tailors" },
                 { text: "Products", href: "/admin/products" },
+                { text: "Category", href: "/admin/category" },
+                { text: "Banner", href: "/admin/banner" },
               ].map((item) => (
                 <ListItem key={item.text} disablePadding>
                   <ListItemButton
                     sx={{
                       borderRadius: "50px",
                       marginTop: "1rem",
-                      bgcolor: "info.main",
+                      bgcolor:
+                        location.pathname === item.href
+                          ? "warning.main"
+                          : "info.main",
                     }}
                     divider
                     component={Link}
@@ -117,6 +136,10 @@ const AdminSidebar = (props) => {
                         <ContentCutIcon />
                       ) : item.text === "Products" ? (
                         <CheckroomIcon />
+                      ) : item.text === "Category" ? (
+                        <CategoryIcon />
+                      ) : item.text === "Banner" ? (
+                        <ViewCarouselIcon />
                       ) : (
                         ""
                       )}

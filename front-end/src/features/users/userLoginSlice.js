@@ -1,12 +1,12 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-const userInfoFromStorage = localStorage.getItem("userInfo")
-  ? JSON.parse(localStorage.getItem("userInfo"))
-  : null;
+// const userInfoFromStorage = localStorage.getItem("userInfo")
+//   ? JSON.parse(localStorage.getItem("userInfo"))
+//   : null;
 
 const initialState = {
   loading: false,
-  userInfo: userInfoFromStorage,
+  userInfo: null,
   error: null,
 };
 
@@ -33,5 +33,5 @@ const userLoginSlice = createSlice({
 });
 
 export default userLoginSlice.reducer;
-export const { userLoginReq, userLoginSuccess, userLoginFail, userLogout } =
+export const { userLoginReq, userLoginSuccess, userLoginFail, userLogout, userError } =
   userLoginSlice.actions;

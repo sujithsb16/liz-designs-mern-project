@@ -3,174 +3,194 @@ import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
 import TextField from "@mui/material/TextField";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import Checkbox from "@mui/material/Checkbox";
-import Link from "@mui/material/Link";
 import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
-import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useState } from "react";
 import Loading from "../Loading";
 import ErrorMessage from "../ErrorMessage";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { login } from "../../actions/userActions";
-const theme = createTheme();
+import { useFormik } from "formik";
+import { loginSchema } from "../../schema/Validation";
+import { userLogin } from "../../apiCalls/userApiCalls";
+import { setUserLogin } from "../../Redux/userSlice";
+import toast, { Toaster } from "react-hot-toast";
+import { Paper } from "@mui/material";
+
+const initialValues = {
+  email: "",
+  password: "",
+};
 
 const SignIn = () => {
   const Navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  // const [error, setError] = useState(false);
-  // const [loading, setLoading] = useState(false);
-  const [user, setUser] = useState(null)
+  const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  
+  ///////////////////validation///////////////
 
+  const { values, errors, touched, handleBlur, handleChange, handleSubmit } =
+    useFormik({
+      initialValues: initialValues,
+      validationSchema: loginSchema,
+      onSubmit: (values) => {
+        submitHandler();
 
+        console.log(values);
+      },
+    });
+  const dispatch = useDispatch();
+  const userDetails = useSelector((state) => state.userLogin);
+  const { userInfo } = userDetails;
 
+  const submitHandler = async () => {
+    try {
+      setLoading(true);
+      console.log("test");
 
-   const dispatch = useDispatch();
-   const userLogin = useSelector((state) => state.userLogin);
-   const { loading, error, userInfo } = userLogin;
+      const userData = {
+        email: values.email,
+        password: values.password,
+      };
+      console.log(userData);
 
+      const result = await userLogin(userData, setLoading);
 
-  // const handleSubmit = (event) => {
-  //   event.preventDefault();
-  //   const data = new FormData(event.currentTarget);
-  //   console.log({
-  //     email: data.get("email"),
-  //     password: data.get("password"),
-  //   });
-  // };
+      console.log(result);
 
-  //  useEffect(() => {
-  //    setUser(localStorage.getItem("userInfo"));
-  //    if (user) {
-  //      Navigate("/");
-  //    }
-  //  }, [user, Navigate]);
+      if (result.data) {
+        console.log("test 4 ");
+        console.log(result.data);
+        dispatch(
+          setUserLogin({
+            token: result.data.token,
+            userInfo: result.data,
+          })
+        );
+      } else {
+        setError(true);
+        setTimeout(() => {
+          setError(false);
+        }, 4000);
+        toast.error(result);
+      }
 
-  const submitHandler = async (e) => {
-    e.preventDefault();
-    dispatch(login(email, password));
-    // try {
-    //   const config = {
-    //     headers: {
-    //       "Content-type": "application/json",
-    //     },
-    //   };
-    //   setLoading(true);
-
-    //   const { data } = await axios
-    //     .post(
-    //       "/users/login",
-    //       {
-    //         email,
-    //         password,
-    //       },
-    //       config
-    //     )
-    //     // .then((response) => {
-    //     //   // console.log(response.data.results);
-    //     //   console.log("hi");
-
-    //     // })
-    //     .catch(function (error) {
-    //       if (error.response) {
-    //         setError(error.response.data.message);
-    //       }
-    //     });
-    //   localStorage.setItem("userInfo", JSON.stringify(data));
-    //   console.log(data);
-    //   setLoading(false);
-    //   setUser(localStorage.getItem("userInfo"));
-    // } catch (error) {
-    //   // setLoading(false);
-    //   // setError(error.response.data.message);
-    //   // console.log(error.response.data.message);
-    // }
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+      console.log(error.message);
+    }
   };
 
   useEffect(() => {
+    console.log(userInfo);
     if (userInfo) {
       Navigate("/");
     }
-  }, [ Navigate, userInfo]);
-
+  }, [Navigate, userInfo]);
 
   return (
     <>
-      <ThemeProvider theme={theme}>
-        {/* <Container component="main" maxWidth="xs"> */}
-        <CssBaseline />
-        <Box
+      <Toaster toasterOptions={{ duratiom: 4000 }} />
+      {/* <Container component="main" maxWidth="xs"> */}
+      <CssBaseline />
+      <Box
+        sx={{
+          bgcolor: "#E9E8E8",
+          marginTop: 0,
+          height: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "1rem",
+        }}
+      >
+        <Paper
           sx={{
-            bgcolor: "#E9E8E8",
-            marginTop: 0,
-            height: "34rem",
+            padding: "2rem",
+            borderRadius: "1rem",
+            bgcolor: "info.main",
+            boxShadow: 10,
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            paddingTop:"4rem"
+            justifyContent: "center",
+            maxWidth: "100%",
+            
           }}
         >
-          <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
-            <LockOutlinedIcon />
-          </Avatar>
-          <Typography component="h1" variant="h5">
-            Sign in
-          </Typography>
           <Box
             component="form"
-            onSubmit={submitHandler}
+            onSubmit={handleSubmit}
             noValidate
-            sx={{ pt: 2 }}
+            sx={{
+              pt: 2,
+              width: "100%",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
           >
+            <Avatar sx={{ bgcolor: "#9c27b0", mb: "1rem" }}>
+              <LockOutlinedIcon />
+            </Avatar>
+            <Typography component="h1" variant="h5" sx={{ mb: "1rem" }}>
+              Sign in
+            </Typography>
             <TextField
+              error={errors.email && touched.email ? true : false}
               margin="normal"
               required
               fullWidth
               id="email"
-              label="Email Address"
+              label={
+                errors.email && touched.email ? errors.email : "Email Address"
+              }
               name="email"
-              value={email}
               autoComplete="email"
               autoFocus
-              onChange={(e) => {
-                setEmail(e.target.value);
-              }}
+              value={values.email}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              sx={{ mb: "1rem" }}
             />
             <TextField
               margin="normal"
+              error={errors.password && touched.password ? true : false}
+              label={
+                errors.password && touched.password
+                  ? errors.password
+                  : "Enter password"
+              }
               required
               fullWidth
               name="password"
-              label="Password"
               type="password"
               id="password"
-              value={password}
               autoComplete="current-password"
-              onChange={(e) => {
-                setPassword(e.target.value);
-              }}
+              value={values.password}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              sx={{ mb: "1rem" }}
             />
+
             {loading ? (
               <Loading />
             ) : (
               <Button
                 type="submit"
-                fullWidth
+                disabled={error ? true : false}
                 variant="contained"
                 sx={{
-                  mt: 3,
-                  mb: 2,
-                  bgcolor: "secondary.main",
+                  mt: "1rem",
+                  minWidth: "10vw",
+                  bgcolor: "#9c27b0",
                   ":hover": {
-                    bgcolor: "#20262E",
+                    bgcolor: "secondary.main",
                     color: "white",
                   },
                 }}
@@ -179,26 +199,34 @@ const SignIn = () => {
               </Button>
             )}
 
-            {error ? <ErrorMessage>{error}</ErrorMessage> : ""}
-
-            <Grid container mt={{ xs: 0.5, sm: 1, md: 1.6, lg: 2 }}
-            alignItems="flex-start">
-              <Grid item xs>
-                <Link href="#" variant="body2">
+            <Grid
+              container
+              mt={{ xs: 0.5, sm: 1, md: 1.6, lg: 2 }}
+              alignItems="center"
+              justifyContent="center"
+              sx={{ mt: "1rem" }}
+            >
+              <Grid item xs={12} sm={6}>
+                <Link to="#" variant="body2">
                   Forgot password?
                 </Link>
               </Grid>
-              <Grid item>
-                <Link href="/usersignup" variant="body2">
+              <Grid
+                item
+                xs={12}
+                sm={6}
+                sx={{ textAlign: { xs: "center", sm: "right" } }}
+              >
+                <Link to="/usersignup" variant="body2">
                   {"Don't have an account? Sign Up"}
                 </Link>
               </Grid>
             </Grid>
           </Box>
-        </Box>
-        {/* <Copyright sx={{ mt: 8, mb: 4 }} /> */}
-        {/* </Container> */}
-      </ThemeProvider>
+        </Paper>
+      </Box>
+
+      {/* </Container> */}
     </>
   );
 };

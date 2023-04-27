@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { styled } from "@mui/material/styles";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -21,6 +21,8 @@ import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
 import { allUserListAction } from "../../actions/adminActions";
 import axios from "axios";
+import { adminUserList, userStatusControl } from "../../apiCalls/adminApiCalls";
+import toast, { Toaster } from "react-hot-toast";
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -69,71 +71,51 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 }));
 
 
-function a11yProps(index) {
-  return {
-    id: `simple-tab-${index}`,
-    "aria-controls": `simple-tabpanel-${index}`,
-  };
-}
 
 const UserTable = () => {
 
     const navigate = useNavigate();
 
-    const [value, setValue] = React.useState(0);
-    const [blockSuccess, setBlockSuccess] = React.useState(false);
+//////////////////////////////////////////////////////
+   
+    const admin = useSelector((state) => state.adminLogin);
+    const token = admin.adminInfo.token;
 
-    const handleChange = (event, newValue) => {
-      setValue(newValue);
-    };
+const [error, setError] = useState(false);
+const [loading, setLoading] = useState(false);
+const [userList, setUserList] = useState([]);
+const [blockSuccess, setBlockSuccess] = useState(false)
 
     
-    const userBlock = async (id, status) => {
-      try {
-          // dispatch(venderBlockReq());
-          
-          console.log(id);
-          console.log("blocksucess1");
-        const adminInfo = JSON.parse(localStorage.getItem("adminInfo"));
-        console.log(adminInfo.token);
-        const config = {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${adminInfo.token}`,
-          },
-        };
-
-        const sendStatus = {
-          blocked: status,
-        };
-       const{data} = await axios.patch(`/admin/blockuser/${id}`, sendStatus, config);
-        
-       dispatch(allUserListAction());
-
-       console.log("blocksucess2");
-
-     
-
-     
-          
-        
-        // dispatch(allUserListAction());
-
-        //    dispatch(venderBlockSuccess());
-      } catch (error) {
-        const message =
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message;
-        console.log(message);
-        // dispatch(venderBlockFail(message));
-      }
-    };
+/////////////////////////////////////////////////////////
 
 
-    const dispatch = useDispatch();
-    const userList = useSelector((state) => state.userList);
-    const { loading, allUser } = userList;
+const userBlock = async (id, status) => {
+  try {
+    setLoading(true);
+    const result = await userStatusControl(id, status, token, setLoading);
+
+    console.log("blocksucess2");
+
+    if (result.data) {
+      console.log("test 4 ");
+      console.log(result.data);
+      setBlockSuccess(!blockSuccess);
+    } else {
+      setError(true);
+      setTimeout(() => {
+        setError(false);
+      }, 4000);
+      toast.error(result);
+    }
+  } catch (error) {
+   setLoading(false);
+   console.log(error.message);
+  }
+};
+
+
+
 
     const handleUserBlock = (id, status) => {
       confirmAlert({
@@ -156,13 +138,43 @@ const UserTable = () => {
       });
     };
 
+////////////////////////////////////////
+
+
+
+const allUserList = useCallback(async () => {
+  try {
+    setLoading(true);
+    const result = await adminUserList(token, setLoading);
+    if (result.data) {
+      console.log("test 4 ");
+      console.log(result.data);
+      setUserList(result.data);
+    } else {
+      setError(true);
+      setTimeout(() => {
+        setError(false);
+      }, 4000);
+      toast.error(result);
+    }
+    setLoading(false);
+  } catch (error) {
+    setLoading(false);
+    console.log(error.message);
+  }
+}, [token]);
+
+
+
+
 
     useEffect(() => {
-      dispatch(allUserListAction());
+
+      allUserList()
      
 ;
       // console.log(allUser);
-    }, [dispatch, 
+    }, [allUserList, 
         // verifySuccess, 
         blockSuccess
     ]);
@@ -172,7 +184,6 @@ const UserTable = () => {
     <>
       <Box
         sx={{
-            
           width: "100%",
           paddindTop: "10rem",
           overflowX: "auto", // Add horizontal scrolling for smaller screens
@@ -184,6 +195,7 @@ const UserTable = () => {
           },
         }}
       >
+        <Toaster toasterOptions={{ duratiom: 4000 }} />
         <Box
           sx={{
             borderBottom: 1,
@@ -191,7 +203,7 @@ const UserTable = () => {
             paddingTop: "5rem",
             justifyContent: "center",
             width: "100%", // Update to use 100% width
-            maxWidth: "69.5rem", // Add maxWidth for better responsiveness
+            maxWidth: "69rem", // Add maxWidth for better responsiveness
             margin: "0 auto", // Center align the container
             overflowX: "hidden", // Add horizontal scrolling for smaller screens
             "@media (min-width: 960px)": {
@@ -223,7 +235,7 @@ const UserTable = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {allUser.map((user) => (
+                  {userList?.map((user) => (
                     <StyledTableRow key={user._id}>
                       <>
                         <StyledTableCell component="th" scope="row">
@@ -237,38 +249,21 @@ const UserTable = () => {
                         </StyledTableCell>
                         {/* <StyledTableCell align="center">{row.carbs}</StyledTableCell> */}
                         <StyledTableCell align="center">
-                          {user.isBlocked ? (
-                            <Button
-                              variant="contained"
-                              sx={{
-                                width: "6rem", // Set the desired width for the button
-                                "@media (max-width: 960px)": {
-                                  width: "10vw", // Set the desired width for smaller screens
-                                },
-                              }}
-                              onClick={() => {
-                                handleUserBlock(user._id, !user.isBlocked);
-                              }}
-                            >
-                              UnBlock
-                            </Button>
-                          ) : (
-                            <Button
-                              variant="contained"
-                              color={"error"}
-                              sx={{
-                                width: "6rem", // Set the desired width for the button
-                                "@media (max-width: 960px)": {
-                                  width: "10vw", // Set the desired width for smaller screens
-                                },
-                              }}
-                              onClick={() => {
-                                handleUserBlock(user._id, !user.isBlocked);
-                              }}
-                            >
-                              Block
-                            </Button>
-                          )}
+                          <Button
+                            variant="contained"
+                            color={user.isBlocked ? "error" : "success"}
+                            sx={{
+                              width: "6rem", // Set the desired width for the button
+                              "@media (max-width: 960px)": {
+                                width: "10vw", // Set the desired width for smaller screens
+                              },
+                            }}
+                            onClick={() => {
+                              handleUserBlock(user._id, user.isBlocked);
+                            }}
+                          >
+                            {!user.isBlocked ? "UnBlock" : "Block"}
+                          </Button>
                         </StyledTableCell>
                       </>
                     </StyledTableRow>

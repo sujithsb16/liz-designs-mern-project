@@ -1,9 +1,10 @@
-import axios from "axios";
+
 import { auth } from "../utility/firebase";
 import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import { toasts } from "../Components/UserComponents/Register";
 
 import {
+  userError,
   userLoginFail,
   userLoginReq,
   userLoginSuccess,
@@ -11,6 +12,7 @@ import {
 } from "../features/users/userLoginSlice";
 import { userRegisterFail, userRegisterOtp, userRegisterReq, userRegisterSuccess } from "../features/users/userRegisterSlice";
 import { async } from "@firebase/util";
+import { axiosUserInstance } from "../utility/axios";
 
 
 export const login = (email, password) => async (dispatch) => {
@@ -22,8 +24,8 @@ export const login = (email, password) => async (dispatch) => {
     };
     dispatch(userLoginReq());
 
-    const { data } = await axios.post(
-      "/users/login",
+    const { data } = await axiosUserInstance.post(
+      "/login",
       {
         email,
         password,
@@ -43,6 +45,9 @@ export const login = (email, password) => async (dispatch) => {
         ? error.response.data.message
         : error.message;
     dispatch(userLoginFail(errorIs));
+     setTimeout(() => {
+     dispatch(userLoginFail());
+     }, 4000);
   }
 };
 
@@ -153,9 +158,8 @@ export const userRegister =
         dispatch(userRegisterReq());
         // setLoading(true);
 
-        const { data } = await axios
-          .post(
-            "/users/register",
+        const { data } = await axiosUserInstance.post(
+            "/register",
             {
               firstName,
               lastName,

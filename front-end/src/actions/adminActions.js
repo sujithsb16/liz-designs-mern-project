@@ -1,14 +1,15 @@
-import axios from "axios";
-import {axiosAdminInstance} from "../utility/axios"
+import { axiosAdminInstance } from "../utility/axios";
 import { adminLoginFail, adminLoginReq, adminLoginSuccess, adminLogout } from "../features/admin/adminLoginSlice";
 import {
-  venderListFail,
-  venderListReq,
-  venderListSuccess,
-} from "../features/admin/allVenderListSlice";
-import { venderVerifyFail, venderVerifySuccess, venderVerifyReq } from "../features/admin/venderVerifySlice";
-import { venderBlockFail, venderBlockReq, venderBlockSuccess } from "../features/admin/venderBlockSlice";
+  vendorListFail,
+  vendorListReq,
+  vendorListSuccess,
+} from "../features/admin/allVendorListSlice";
+import { vendorVerifyFail, vendorVerifySuccess, vendorVerifyReq } from "../features/admin/vendorVerifySlice";
+import { vendorBlockFail, vendorBlockReq, vendorBlockSuccess } from "../features/admin/vendorBlockSlice";
 import { userListFail, userListReq, userListSuccess } from "../features/admin/allUserListSlice";
+import { categoryFail, categoryReq, categorySuccess } from "../features/admin/adminCategorySlice";
+
 
 
 
@@ -31,7 +32,7 @@ export const adminLogin = (email, password) => async (dispatch) => {
       config
     );
 
-    // const { data } = await axiosAdminInstance.post(
+    // const { data } = await axiosAdminInstanceAdminInstance.post(
     //   "/adminLogin",
     //   {
     //     email,
@@ -61,9 +62,9 @@ export const AdminLogout = () => async (dispatch) => {
 };
 
 
-export const allVenderList = () => async (dispatch, getState) => {
+export const allVendorList = () => async (dispatch, getState) => {
   try {
-    dispatch(venderListReq());
+    dispatch(vendorListReq());
 
     const{
       adminLogin: {adminInfo},
@@ -77,13 +78,13 @@ export const allVenderList = () => async (dispatch, getState) => {
       },
     };
 
-    const { data } = await axios.get("/admin/allvenders", config)
+    const { data } = await axiosAdminInstance.get("/allvendors", config)
       console.log(data);
-      dispatch(venderListSuccess(data));
+      dispatch(vendorListSuccess(data));
     
 
   } catch (error) {
-    dispatch(venderListFail(error));
+    dispatch(vendorListFail(error));
     console.log(error);
   }
 };
@@ -100,8 +101,8 @@ export const allUserListAction = () => async (dispatch, getState) => {
       headers: { Authorization: `Bearer ${adminInfo.token}` },
     };
 
-    const  {data}  = await axios
-      .get("/admin/allusers", config)
+    const  {data}  = await axiosAdminInstance
+      .get("/allusers", config)
       
       dispatch(userListSuccess(data));
   } catch (error) {
@@ -111,9 +112,9 @@ export const allUserListAction = () => async (dispatch, getState) => {
 };
 
 
-export const verifyVender = (id, status) => async (dispatch, getState) => {
+export const verifyVendor = (id, status) => async (dispatch, getState) => {
   try {
-    dispatch(venderVerifyReq());
+    dispatch(vendorVerifyReq());
 
    const {
      adminLogin: { adminInfo },
@@ -132,17 +133,17 @@ export const verifyVender = (id, status) => async (dispatch, getState) => {
       isVerified: status,
     };
 
-    await axios.patch(`/admin/verifyvender/${id}`, sendStatus, config).then(() => {
-      dispatch(venderVerifySuccess());
+    await axiosAdminInstance.patch(`/verifyvendor/${id}`, sendStatus, config).then(() => {
+      dispatch(vendorVerifySuccess());
     });
 
-    dispatch(venderVerifySuccess());
+    dispatch(vendorVerifySuccess());
   } catch (error) {
     const message =
       error.response && error.response.data.message
         ? error.response.data.message
         : error.message;
-    dispatch(venderVerifyFail(message));
+    dispatch(vendorVerifyFail(message));
     console.log(message);
   }
 };
@@ -151,9 +152,9 @@ export const verifyVender = (id, status) => async (dispatch, getState) => {
 
 
 
-export const venderBlock = (id, status) => async (dispatch, getState) => {
+export const vendorBlock = (id, status) => async (dispatch, getState) => {
   try {
-    dispatch(venderBlockReq());
+    dispatch(vendorBlockReq());
 
     const {
       adminLogin: { adminInfo },
@@ -170,10 +171,10 @@ export const venderBlock = (id, status) => async (dispatch, getState) => {
       blocked: status,
     };
 
-  const response = await axios.patch(`/admin/blockvender/${id}`, sendStatus, config)
+  const response = await axiosAdminInstance.patch(`/blockvendor/${id}`, sendStatus, config)
   if (response.status === 200) {
     // Successful response
-    dispatch(venderBlockSuccess());
+    dispatch(vendorBlockSuccess());
   } else {
     // Handle other response status codes
     // You can customize the error handling as needed
@@ -185,6 +186,73 @@ export const venderBlock = (id, status) => async (dispatch, getState) => {
       error.response && error.response.data.message
         ? error.response.data.message
         : error.message;
-    dispatch(venderBlockFail(message));
+    dispatch(vendorBlockFail(message));
+  }
+};
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+export const addCategory =async (category, adminInfo)=>{
+
+  try {
+
+    console.log(category,adminInfo);
+
+     const config = {
+       headers: {
+         "Content-Type": "application/json",
+         Authorization: `Bearer ${adminInfo.token}`,
+       },
+     };
+      const response = await axiosAdminInstance.post(`/addcategory`,{category}, config)
+  if (response.status === 200) {
+    // Successful response
+    
+  } else {
+    // Handle other response status codes
+    // You can customize the error handling as needed
+    throw new Error(`Unexpected response status code: ${response.status}`);
+  }
+    
+  } catch (error) {
+    console.log(error.message);
+  }
+
+}
+
+export const getCategory = (adminInfo) => async (dispatch) => {
+  try {
+
+
+    dispatch(categoryReq())
+    
+    const config = {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${adminInfo.token}`,
+      },
+    };
+    const { data } = await axiosAdminInstance.get(`/getcategory`, config);
+
+    console.log(data);
+
+    dispatch(categorySuccess(data))
+
+    if (data) {
+      console.log(data);
+      // Successful response
+    } else {
+      // Handle other response status codes
+      // You can customize the error handling as needed
+      throw new Error(`Unexpected response `);
+    }
+  } catch (error) {
+    dispatch(categoryFail(error.message))
   }
 };

@@ -3,8 +3,11 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import AdminDashboard from '../../pages/adminPages/AdminDashboard';
 import AdminSignIn from '../../pages/adminPages/AdminSignIn';
 import AdminUserPage from '../../pages/adminPages/AdminUserPage';
-import AdminVenderPage from '../../pages/adminPages/AdminVenderPage';
+import AdminVendorPage from '../../pages/adminPages/AdminVendorPage';
 import { useSelector } from 'react-redux';
+import AdminCategoryPage from '../../pages/adminPages/AdminCategoryPage';
+import AdminProductPage from '../../pages/adminPages/AdminProductPage';
+import AdminBannerPage from '../../pages/adminPages/AdminBannerPage';
 
 
 const ProtectedRoute = ({ children }) => {
@@ -43,7 +46,7 @@ const AdminRoutes = () => {
           <Route path="/admin"  element={<ConditionalRendering isAuthenticated={isAuthenticated}/>} />
           {/* <Route path="/admin/dashboard" element={<AdminDashboard />} /> */}
           {/* <Route path="/admin/users" element={<AdminUserPage />} />
-          <Route path="/admin/tailors" element={<AdminVenderPage />} /> */}
+          <Route path="/admin/tailors" element={<AdminVendorPage />} /> */}
 
           <Route
             path="/admin/dashboard"
@@ -66,7 +69,31 @@ const AdminRoutes = () => {
             path="/admin/tailors"
             element={
               <ProtectedRoute>
-                <AdminVenderPage />
+                <AdminVendorPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/category"
+            element={
+              <ProtectedRoute>
+                <AdminCategoryPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/products"
+            element={
+              <ProtectedRoute>
+                <AdminProductPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/banner"
+            element={
+              <ProtectedRoute>
+                <AdminBannerPage />
               </ProtectedRoute>
             }
           />

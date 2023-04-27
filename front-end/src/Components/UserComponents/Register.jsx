@@ -3,9 +3,6 @@ import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
 import TextField from "@mui/material/TextField";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import Checkbox from "@mui/material/Checkbox";
-import Link from "@mui/material/Link";
 import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
@@ -13,182 +10,166 @@ import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import Loading from "../Loading";
-import axios from "axios";
 import ErrorMessage from "../ErrorMessage";
 import Otp from "otp-input-react";
 import { auth } from "../../utility/firebase";
 import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import { shadows } from "@mui/system";
 import toast, { Toaster } from "react-hot-toast";
-import Toastify from "toastify";
 import { Alert } from "@mui/material";
-import { userRegister } from "../../actions/userActions";
-// import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useDispatch, useSelector } from "react-redux";
-import { onSignup, verifyOtp } from "../../actions/userActions";
+import { useFormik } from "formik";
+import { userSignUp } from "../../apiCalls/userApiCalls";
+import { userSignUpSchema } from "../../schema/Validation";
+import { Link } from "react-router-dom";
 
 export const toasts = () => {
   toast.success("OTP sended successfully");
 };
 
+const initialValues = {
+  firstName: "",
+  lastName: "",
+  mobile: "",
+  email: "",
+  password: "",
+  confirmPassword: "",
+};
+
 const Register = () => {
-
-  
-
   const theme = createTheme();
+
+  /////////////////////validation//////////
+
+  const { values, errors, touched, handleBlur, handleChange, handleSubmit } =
+    useFormik({
+      initialValues: initialValues,
+      validationSchema: userSignUpSchema,
+      onSubmit: (values) => {
+        // submitHandler();
+        moblieVerify();
+
+        console.log(values);
+      },
+    });
+
+  console.log(errors);
+
+  /////////////////////////////////////////////////
 
   //For Registration//
 
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [mobile, setMobile] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState(null);
-  // const [error, setError] = useState(false);
-  // const [loading, setLoading] = useState(false);
-  // const [success, setSuccess] = useState(false);
+  const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   //For otp//
 
   const [otp, setOtp] = useState("");
-  // const [showOtp, setShowOtp] = useState(false);
+  const [showOtp, setShowOtp] = useState(false);
 
-  // const handleSubmit = (event) => {
-  //   event.preventDefault();
-  //   const data = new FormData(event.currentTarget);
-  //   console.log({
-  //     email: data.get("email"),
-  //     password: data.get("password"),
-  //   });
-  // };
+  //////////////////////////////////////
 
-  const dispatch = useDispatch();
-     const userRegisters = useSelector((state) => state.userRegister);
-     const { loading, error, showOtp, success } = userRegisters;
-
-     function onCaptchVerify() {
-       if (!window.recaptchaVerifier) {
-         window.recaptchaVerifier = new RecaptchaVerifier(
-           "recaptcha-container",
-           {
-             size: "invisible",
-             callback: (response) => {
-              //  onSignup();
-             },
-             "expired-callback": () => {},
-           },
-           auth
-         );
-       }
-     }
-
-  
-
-  function submitHandler(event) {
-    event.preventDefault();
-    dispatch(onSignup(mobile))
-    // setLoading(true);
-    // onCaptchVerify();
-
-    // const appVerifier = window.recaptchaVerifier;
-    // const formatPh = "+91" + mobile;
-
-    // signInWithPhoneNumber(auth, formatPh, appVerifier)
-    //   .then((confirmationResult) => {
-    //     window.confirmationResult = confirmationResult;
-    //     // setLoading(false);
-    //     setShowOtp(true);
-    //     toast.success("OTP sended successfully");
-    //   })
-    //   .catch((error) => {
-    //     // setLoading(false);
-    //     // setError(error.message);
-    //     toast.failed(error.message);
-    //   });
+  function onCaptchVerify() {
+    if (!window.recaptchaVerifier) {
+      window.recaptchaVerifier = new RecaptchaVerifier(
+        "recaptcha-container",
+        {
+          size: "invisible",
+          callback: (response) => {
+            moblieVerify();
+          },
+          "expired-callback": () => {},
+        },
+        auth
+      );
+    }
   }
 
-  
+  function moblieVerify() {
+    setLoading(true);
+    onCaptchVerify();
+
+    const appVerifier = window.recaptchaVerifier;
+    const formatPh = "+91" + values.mobile;
+
+    signInWithPhoneNumber(auth, formatPh, appVerifier)
+      .then((confirmationResult) => {
+        window.confirmationResult = confirmationResult;
+        setLoading(false);
+        setShowOtp(true);
+        toast.success("OTP sended successfully");
+      })
+      .catch((error) => {
+        setLoading(false);
+        setError(true);
+        setTimeout(() => {
+          setError(false);
+        }, 4000);
+        toast.error(error.message);
+      });
+  }
 
   const otpHandler = () => {
-    dispatch(
-      verifyOtp(
-        otp,
-        firstName,
-        lastName,
-        email,
-        mobile,
-        password,
-        confirmPassword
-      )
-    );
-    // setLoading(true);
-    // const code = otp;
-    // window.confirmationResult
-    //   .confirm(code)
-    //   .then(async (result) => {
-    //     const user = result.user;
-    //     // submitHandler();
-    //     // setLoading(false);
-    //     setShowOtp(false);
-    //   })
-    //   .catch((error) => {
-    //     // setLoading(false);
-    //     console.log(error.message);
-    //     toast.error(error.message);
-    //   });
+    setLoading(true);
+    const code = otp;
+    window.confirmationResult
+      .confirm(code)
+      .then(async (result) => {
+        const user = result.user;
+        submitHandler();
+        setLoading(false);
+        setShowOtp(false);
+      })
+      .catch((error) => {
+        setLoading(false);
+        console.log(error.message);
+        setError(true);
+        setTimeout(() => {
+          setError(false);
+        }, 4000);
+        toast.error(error.message);
+      });
   };
 
-  // const submitHandler = async () => {
+  const submitHandler = async () => {
+    try {
+      const userData = {
+        firstName: values.firstName,
+        lastName: values.lastName,
+        email: values.email,
+        mobile: values.mobile,
+        password: values.password,
+      };
 
-  //   dispatch(userRegister(firstName, lastName, email, mobile, password,confirmPassword))
-  //   // if (password !== confirmPassword) {
-  //   //   setLoading(true);
-  //   //   setMessage("passwords does not match");
-  //   //   console.log(message);
-  //   //   setLoading(false);
-  //   // } else {
-  //   //   setMessage(null);
+      setLoading(true);
 
-  //   //   try {
-  //   //     const config = {
-  //   //       headers: {
-  //   //         "Content-type": "application/json",
-  //   //       },
-  //   //     };
-  //   //     setLoading(true);
+      const result = await userSignUp(userData, setLoading);
 
-  //   //     const { data } = await axios
-  //   //       .post(
-  //   //         "/users/register",
-  //   //         {
-  //   //           firstName,
-  //   //           lastName,
-  //   //           email,
-  //   //           mobile,
-  //   //           password,
-  //   //         },
-  //   //         config
-  //   //       )
-  //   //       .catch(function (error) {
-  //   //         if (error.response) {
-  //   //           setError(error.response.data.message);
-  //   //           setMessage(error.response.data.message);
-  //   //         }
-  //   //       });
-  //   //     console.log(data);
-  //   //     localStorage.setItem("userInfo", JSON.stringify(data));
-  //   //     setLoading(false);
-  //   //     data ? setSuccess(true) : setSuccess(false);
-  //   //   } catch (error) {
-  //   //     setLoading(false);
-  //   //     // console.log(error)
-  //   //     setError(error.response.data.message);
-  //   //   }
-  //   // }
-  // };
+      if (result.data) {
+        setSuccess(true);
+      } else {
+        setError(true);
+        setTimeout(() => {
+          setError(false);
+        }, 4000);
+        toast.error(result);
+      }
+
+      console.log(result);
+
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+      console.log(error);
+      setError(true);
+      setTimeout(() => {
+        setError(false);
+      }, 4000);
+    }
+  };
+
   return (
     <div>
       <Toaster toasterOptions={{ duratiom: 4000 }} />
@@ -215,7 +196,6 @@ const Register = () => {
             <Container component="main" maxWidth="xs">
               {showOtp ? (
                 <Box
-                  component="form"
                   noValidate
                   // onSubmit={verifyOtp}
                   boxShadow={10}
@@ -271,8 +251,6 @@ const Register = () => {
                       <span>Verify OTP</span>
                     </Button>
                   )}
-
-                  {error ? <ErrorMessage>{error}</ErrorMessage> : ""}
                 </Box>
               ) : (
                 <Box
@@ -293,24 +271,28 @@ const Register = () => {
                   <Box
                     component="form"
                     noValidate
-                    onSubmit={submitHandler}
+                    onSubmit={handleSubmit}
                     sx={{ mt: 2 }}
                   >
                     <Grid container spacing={2}>
                       <Grid item xs={12} sm={6}>
                         <TextField
+                          error={
+                            errors.firstName && touched.firstName ? true : false
+                          }
                           autoComplete="given-name"
                           name="firstName"
                           required
                           fullWidth
                           id="firstName"
-                          label="First Name"
-                          value={firstName}
+                          value={values.firstName}
+                          label={
+                            errors.firstName ? errors.firstName : "First Name"
+                          }
                           autoFocus
                           size="small"
-                          onChange={(e) => {
-                            setFirstName(e.target.value);
-                          }}
+                          onChange={handleChange}
+                          onBlur={handleBlur}
                         />
                       </Grid>
                       <Grid item xs={12} sm={6}>
@@ -318,14 +300,18 @@ const Register = () => {
                           required
                           fullWidth
                           id="lastName"
-                          label="Last Name"
                           name="lastName"
                           autoComplete="family-name"
                           size="small"
-                          value={lastName}
-                          onChange={(e) => {
-                            setLastName(e.target.value);
-                          }}
+                          value={values.lastName}
+                          error={
+                            errors.lastName && touched.lastName ? true : false
+                          }
+                          label={
+                            errors.lastName ? errors.lastName : "Last Name"
+                          }
+                          onChange={handleChange}
+                          onBlur={handleBlur}
                         />
                       </Grid>
                       <Grid item xs={12}>
@@ -333,14 +319,14 @@ const Register = () => {
                           required
                           fullWidth
                           id="email"
-                          label="Email Address"
                           name="email"
                           autoComplete="email"
                           size="small"
-                          value={email}
-                          onChange={(e) => {
-                            setEmail(e.target.value);
-                          }}
+                          value={values.email}
+                          error={errors.email && touched.email ? true : false}
+                          label={errors.email ? errors.email : "Email"}
+                          onChange={handleChange}
+                          onBlur={handleBlur}
                         />
                       </Grid>
                       <Grid item xs={12}>
@@ -348,13 +334,13 @@ const Register = () => {
                           required
                           fullWidth
                           // id="email"
-                          label="Mobile No"
-                          name="email"
+                          name="mobile"
                           size="small"
-                          value={mobile}
-                          onChange={(e) => {
-                            setMobile(e.target.value);
-                          }}
+                          value={values.mobile}
+                          error={errors.mobile && touched.mobile ? true : false}
+                          label={errors.mobile ? errors.mobile : "Mobile No"}
+                          onChange={handleChange}
+                          onBlur={handleBlur}
                         />
                       </Grid>
                       <Grid item xs={12}>
@@ -362,32 +348,41 @@ const Register = () => {
                           required
                           fullWidth
                           name="password"
-                          label="Password"
                           type="password"
                           id="password"
                           autoComplete="new-password"
                           size="small"
-                          value={password}
-                          onChange={(e) => {
-                            setPassword(e.target.value);
-                          }}
+                          error={
+                            errors.password && touched.password ? true : false
+                          }
+                          label={errors.password ? errors.password : "Password"}
+                          value={values.password}
+                          onChange={handleChange}
+                          onBlur={handleBlur}
                         />
                       </Grid>
                       <Grid item xs={12}>
                         <TextField
+                          error={
+                            errors.confirmPassword && touched.confirmPassword
+                              ? true
+                              : false
+                          }
                           required
                           fullWidth
-                          name="confirm Password"
-                          label="confirm Password"
+                          name="confirmPassword"
                           type="password"
                           // id="password"
                           autoComplete="new-password"
                           size="small"
-                          value={confirmPassword}
-                          onChange={(e) => {
-                            setMessage(false);
-                            setConfirmPassword(e.target.value);
-                          }}
+                          value={values.confirmPassword}
+                          label={
+                            errors.confirmPassword
+                              ? errors.confirmPassword
+                              : "confirm Password"
+                          }
+                          onChange={handleChange}
+                          onBlur={handleBlur}
                         />
                       </Grid>
                       {/* <Grid item xs={12}>
@@ -404,6 +399,7 @@ const Register = () => {
                     ) : (
                       <Button
                         type="submit"
+                        disabled={error ? true : false}
                         fullWidth
                         variant="contained"
                         sx={{
@@ -427,7 +423,7 @@ const Register = () => {
 
                     <Grid container justifyContent="flex-start">
                       <Grid item>
-                        <Link href="#" variant="body2">
+                        <Link to={"/usersignin"} variant="body2">
                           Already have an account? Sign in
                         </Link>
                       </Grid>

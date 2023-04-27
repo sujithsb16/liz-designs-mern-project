@@ -1,7 +1,8 @@
 const asyncHandler = require("express-async-handler");
 // const { Error } = require("mongoose");
 const User = require("../models/userModel");
-const generateToken = require("../utils/generateToken");
+const {generateToken}= require("../utils/generateToken");
+const Product = require("../models/productModel");
 
 // const registerUser = asyncHandler(async (req, res) => {
 //   const { name, email, mobile, password, isAdmin } = req.body;
@@ -88,12 +89,14 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 });
 
-const verifyUser = asyncHandler(async (req, res) => {
+const userLogin = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
+
+  console.log(email);
 
   const user = await User.findOne({ email });
   if (user && (await user.matchPassword(password))) {
-    res.json({
+    res.status(201).json({
       _id: user._id,
       name: user.firstName,
       email: user.email,
@@ -107,4 +110,64 @@ const verifyUser = asyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { registerUser, verifyUser };
+const getProduct = asyncHandler(async (req, res) => {
+  const productList = await Product.find();
+
+  res.status(201).json(productList);
+});
+
+const getSingletProduct = asyncHandler(async (req, res) => {
+  const {id} = req.params;
+  console.log(id);
+  const product = await Product.findById(id);
+if(product){
+res.status(201).json(product);
+}else{
+  res.status(400);
+  throw new Error("Product not Found!");
+}
+  
+});
+
+const addToCart = asyncHandler(async (req, res, next) => {
+  try {
+    const productId = req.params.id;
+    const user = req.user;
+    console.log("server" + productId ,user);
+    const userData = await User.findById({ _id: user._id });
+    const productData = await Product.findById({ _id: productId });
+    userData.addToCart(productData);
+    
+  } catch (error) {
+    console.log(error.message);
+  }
+});
+
+
+const getCart = asyncHandler(async (req, res) => {
+
+  try {
+
+    const userId = req.user._id
+
+    console.log(userId);
+
+    const cartList = await User.findById({_id:userId}).populate({path:"cart.items.productId"})
+    console.log(cartList);
+res.status(201).json(cartList);
+    
+  } catch (error) {
+
+    console.log(error);
+    
+  }
+} )
+
+module.exports = {
+  registerUser,
+  userLogin,
+  getProduct,
+  getSingletProduct,
+  addToCart,
+  getCart,
+};
