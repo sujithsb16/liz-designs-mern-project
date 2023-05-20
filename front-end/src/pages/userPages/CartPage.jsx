@@ -19,6 +19,7 @@ const CartPage = () => {
      const [loading, setLoading] = useState(false);
      const [cartProducts, setCartProducts] = useState([]);
      const [error, setError] = useState(false);
+   const [addSuccess, setAddSuccess] = useState(false);
 
      const user = useSelector((state) => state.userLogin);
      const token = user.userInfo.token;
@@ -46,7 +47,7 @@ const CartPage = () => {
 
      useEffect(() => {
        getCartProduct();
-     }, [getCartProduct]);
+     }, [getCartProduct,addSuccess]);
 
 
 
@@ -54,7 +55,7 @@ const CartPage = () => {
   return (
     <>
       <Header />
-      <Cart cartItems={cartProducts} />
+      <Cart cartItems={cartProducts} setAddSuccess={setAddSuccess} addSuccess={addSuccess} />
       <UserFooter />
     </>
   );

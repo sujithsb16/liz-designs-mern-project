@@ -103,7 +103,7 @@ const UserFooter = () => {
               sx={{ mt: 1.3, marginLeft: 3 }}
             >
               {"Copyright © "}
-              PurePulse {new Date().getFullYear()}
+              Liz Designs {new Date().getFullYear()}
             </Typography>
           </Stack>
         )}
@@ -139,7 +139,7 @@ const UserFooter = () => {
             )}
             <Typography variant="body2" color="info.main">
               {"Copyright © "}
-              PurePulse {new Date().getFullYear()}
+              Liz Designs {new Date().getFullYear()}
             </Typography>
           </Stack>
         )}

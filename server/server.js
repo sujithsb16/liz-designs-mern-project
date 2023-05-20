@@ -15,6 +15,8 @@ app.use(express.json({ limit: "100mb" }));
 
 dotenv.config();
 db.connectDB();
+
+
 app.use(express.json());
 const corsOptions = {
     origin: "http://localhost:3000",

@@ -324,3 +324,156 @@ export const productStatusControl = async (id, status, token, setLoading) => {
   }
 };
 ///////////////product api end/////////////
+
+
+///////////////coupon api start/////////////
+
+export const adminAddCoupon = async (couponData, token, setLoading) => {
+  try {
+    const config = {
+      headers: { Authorization: `Bearer ${token}` },
+    };
+    const response = await axiosAdminInstance.post(
+      `/addcoupon`,
+      { ...couponData },
+      config
+    );
+    console.log(response);
+    return response;
+  } catch (error) {
+    const errorIs =
+      error.response && error.response.data.message
+        ? error.response.data.message
+        : error.message;
+        setLoading(false);
+    console.log("admin apiCalls error - " + errorIs);
+    return errorIs;
+  }
+};
+
+export const adminCouponList = async (token, setLoading) => {
+  try {
+    const config = {
+      headers: { Authorization: `Bearer ${token}` },
+    };
+    const response = await axiosAdminInstance.get("/getcoupon", config);
+    console.log(response);
+    return response;
+  } catch (error) {
+    const errorIs =
+      error.response && error.response.data.message
+        ? error.response.data.message
+        : error.message;
+    setLoading(false);
+    console.log("admin apiCalls error - " + errorIs);
+    return errorIs;
+  }
+};
+
+export const couponStatusControl = async (id, status, token, setLoading) => {
+  try {
+    console.log("token" + token);
+    const config = {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    const response = await axiosAdminInstance.patch(
+      `/blockcoupon/${id}`,
+      { blocked: status },
+      config
+    );
+
+    console.log("blocksucess2");
+    console.log("response " + response);
+    return response;
+  } catch (error) {
+    const errorIs =
+      error.response && error.response.data.message
+        ? error.response.data.message
+        : error.message;
+    setLoading(false);
+    console.log("admin apiCalls error - " + errorIs);
+    return errorIs;
+  }
+};
+
+///////////////coupon api end/////////////
+
+///////////////banner api start/////////
+
+export const bannerStatusControl = async (id, status, token, setLoading) => {
+  try {
+    console.log("token" + token);
+    const config = {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    const response = await axiosAdminInstance.patch(
+      `/blockbanner/${id}`,
+      { blocked: status },
+      config
+    );
+
+    console.log("blocksucess2");
+    console.log("response " + response);
+    return response;
+  } catch (error) {
+    const errorIs =
+      error.response && error.response.data.message
+        ? error.response.data.message
+        : error.message;
+    setLoading(false);
+    console.log("admin apiCalls error - " + errorIs);
+    return errorIs;
+  }
+};
+
+export const adminBannerList = async (token, setLoading) => {
+  try {
+    const config = {
+      headers: { Authorization: `Bearer ${token}` },
+    };
+    const response = await axiosAdminInstance.get("/getbanner", config);
+    console.log(response);
+    return response;
+  } catch (error) {
+    const errorIs =
+      error.response && error.response.data.message
+        ? error.response.data.message
+        : error.message;
+    setLoading(false);
+    console.log("admin apiCalls error - " + errorIs);
+    return errorIs;
+  }
+};
+
+export const adminAddBanner = async (bannerName, image, token, setLoading) => {
+  try {
+    const config = {
+      headers: { Authorization: `Bearer ${token}` },
+    };
+    const response = await axiosAdminInstance.post(
+      `/addbanner`,
+       {bannerName, image,},
+      config
+    );
+    console.log(response);
+    return response;
+  } catch (error) {
+    setLoading(false)
+    const errorIs =
+      error.response && error.response.data.message
+        ? error.response.data.message
+        : error.message;
+    console.log("admin apiCalls error - " + errorIs);
+    return errorIs;
+  }
+};
+
+///////////////banner api end///////////

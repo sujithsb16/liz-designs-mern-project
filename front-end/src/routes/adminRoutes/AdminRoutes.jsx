@@ -8,6 +8,7 @@ import { useSelector } from 'react-redux';
 import AdminCategoryPage from '../../pages/adminPages/AdminCategoryPage';
 import AdminProductPage from '../../pages/adminPages/AdminProductPage';
 import AdminBannerPage from '../../pages/adminPages/AdminBannerPage';
+import AdminCouponPage from '../../pages/adminPages/AdminCouponPage';
 
 
 const ProtectedRoute = ({ children }) => {
@@ -94,6 +95,14 @@ const AdminRoutes = () => {
             element={
               <ProtectedRoute>
                 <AdminBannerPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/coupon"
+            element={
+              <ProtectedRoute>
+                <AdminCouponPage />
               </ProtectedRoute>
             }
           />

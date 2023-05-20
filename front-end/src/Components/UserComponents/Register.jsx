@@ -277,20 +277,22 @@ const Register = () => {
                     <Grid container spacing={2}>
                       <Grid item xs={12} sm={6}>
                         <TextField
-                          error={
-                            errors.firstName && touched.firstName ? true : false
-                          }
                           autoComplete="given-name"
                           name="firstName"
                           required
                           fullWidth
                           id="firstName"
-                          value={values.firstName}
-                          label={
-                            errors.firstName ? errors.firstName : "First Name"
-                          }
                           autoFocus
                           size="small"
+                          value={values.firstName}
+                          error={
+                            errors.firstName && touched.firstName ? true : false
+                          }
+                          label={
+                            errors.firstName && touched.firstName
+                              ? errors.firstName
+                              : "First Name"
+                          }
                           onChange={handleChange}
                           onBlur={handleBlur}
                         />
@@ -308,7 +310,9 @@ const Register = () => {
                             errors.lastName && touched.lastName ? true : false
                           }
                           label={
-                            errors.lastName ? errors.lastName : "Last Name"
+                            errors.lastName && touched.lastName
+                              ? errors.lastName
+                              : "Last Name"
                           }
                           onChange={handleChange}
                           onBlur={handleBlur}
@@ -324,7 +328,11 @@ const Register = () => {
                           size="small"
                           value={values.email}
                           error={errors.email && touched.email ? true : false}
-                          label={errors.email ? errors.email : "Email"}
+                          label={
+                            errors.email && touched.email
+                              ? errors.email
+                              : "Email"
+                          }
                           onChange={handleChange}
                           onBlur={handleBlur}
                         />
@@ -338,7 +346,11 @@ const Register = () => {
                           size="small"
                           value={values.mobile}
                           error={errors.mobile && touched.mobile ? true : false}
-                          label={errors.mobile ? errors.mobile : "Mobile No"}
+                          label={
+                            errors.mobile && touched.mobile
+                              ? errors.mobile
+                              : "Mobile No"
+                          }
                           onChange={handleChange}
                           onBlur={handleBlur}
                         />
@@ -355,7 +367,11 @@ const Register = () => {
                           error={
                             errors.password && touched.password ? true : false
                           }
-                          label={errors.password ? errors.password : "Password"}
+                          label={
+                            errors.password && touched.password
+                              ? errors.password
+                              : "Password"
+                          }
                           value={values.password}
                           onChange={handleChange}
                           onBlur={handleBlur}
@@ -377,7 +393,7 @@ const Register = () => {
                           size="small"
                           value={values.confirmPassword}
                           label={
-                            errors.confirmPassword
+                            errors.confirmPassword && touched.confirmPassword
                               ? errors.confirmPassword
                               : "confirm Password"
                           }

@@ -138,7 +138,15 @@ const categoryBlock = async (id, status) => {
     if (result.data) {
       console.log("test 4 ");
       console.log(result.data);
-      setBlockSuccess(!blockSuccess);
+       setCategoryList(
+         categoryList.map((category) => {
+           if (category._id === id) {
+             return { ...category, isBlocked: !category.isBlocked };
+           } else {
+             return category;
+           }
+         })
+       );
     } else {
       setError(true);
       setTimeout(() => {

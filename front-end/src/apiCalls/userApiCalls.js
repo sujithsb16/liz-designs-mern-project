@@ -61,6 +61,44 @@ export const userSignUp = async (userData, setLoading) => {
   }
 };
 
+export const updateUserApi = async (token,updatedUser, setLoading) => {
+  try {
+    console.log("test api");
+   const response = await axiosUserInstance.patch(`/updateuser/`, updatedUser, {
+     headers: { Authorization: `Bearer ${token}` },
+   });
+    console.log(response);
+    return response;
+  } catch (error) {
+    const errorIs =
+      error.response && error.response.data.message
+        ? error.response.data.message
+        : error.message;
+    setLoading(false);
+    console.log(errorIs);
+    return errorIs;
+  }
+};
+export const addAddressApi = async (token,address, setLoading) => {
+  try {
+    console.log("test api 2");
+    console.log(address);
+   const response = await axiosUserInstance.patch(`/addaddress/`, address, {
+     headers: { Authorization: `Bearer ${token}` },
+   });
+    console.log(response);
+    return response;
+  } catch (error) {
+    const errorIs =
+      error.response && error.response.data.message
+        ? error.response.data.message
+        : error.message;
+    setLoading(false);
+    console.log(errorIs);
+    return errorIs;
+  }
+};
+
 //////////////////////////////////////////
 export const userProductList = async (setLoading) => {
   try {
@@ -122,6 +160,49 @@ export const addToCart = async (token ,productId) => {
     return errorIs;
   }
 };
+export const updateToCart = async (token ,productId) => {
+  try {
+
+    console.log("user api " + token);
+
+    // console.log(productId);
+    const response = await axiosUserInstance.patch(`/editcart/${productId}`,null, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    console.log(response);
+    return response;
+  } catch (error) {
+    const errorIs =
+      error.response && error.response.data.message
+        ? error.response.data.message
+        : error.message;
+    // setLoading(false);
+    console.log("user apiCalls error - " + errorIs);
+    return errorIs;
+  }
+};
+export const deleteCart = async (token ,productId) => {
+  try {
+
+    console.log("user api " + token);
+
+    const config = {
+      headers: { Authorization: `Bearer ${token}` },
+    };
+    // console.log(productId);
+    const response = await axiosUserInstance.get(`/deletecart/${productId}`, config);
+    console.log(response);
+    return response;
+  } catch (error) {
+    const errorIs =
+      error.response && error.response.data.message
+        ? error.response.data.message
+        : error.message;
+    // setLoading(false);
+    console.log("user apiCalls error - " + errorIs);
+    return errorIs;
+  }
+};
 export const cartProductList = async (token) => {
   try {
     console.log("user api " + token);
@@ -148,5 +229,239 @@ export const cartProductList = async (token) => {
 };
 
 
+export const UserProfileApi = async (token) => {
+  try {
+    console.log("user api " + token);
+
+    const config = {
+      headers: { Authorization: `Bearer ${token}` },
+    };
+    // console.log(productId);
+    const response = await axiosUserInstance.get(`/userprofile`, config);
+    // console.log(response);
+    return response;
+  } catch (error) {
+    const errorIs =
+      error.response && error.response.data.message
+        ? error.response.data.message
+        : error.message;
+    // setLoading(false);
+    console.log("user apiCalls error - " + errorIs);
+    return errorIs;
+  }
+};
+
+export const userCouponActivate = async (token,couponId, setLoading) => {
+  try {
+    console.log("user api " + token);
+    
+
+    
+    const response = await axiosUserInstance.patch(
+      `/couponactivate/${couponId}`,
+      null,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    console.log(response);
+    return response;
+  } catch (error) {
+    const errorIs =
+      error.response && error.response.data.message
+        ? error.response.data.message
+        : error.message;
+    // setLoading(false);
+    console.log("user apiCalls error - " + errorIs);
+    return errorIs;
+  }
+};
+
+
 
 /////////////////////////////////////////
+
+
+export const getUserApi = async (token) => {
+  try {
+    console.log("user api " + token);
+
+    const config = {
+      headers: { Authorization: `Bearer ${token}` },
+    };
+    // console.log(productId);
+    const response = await axiosUserInstance.get(`/getuser`, config);
+    // console.log(response);
+    return response;
+  } catch (error) {
+    const errorIs =
+      error.response && error.response.data.message
+        ? error.response.data.message
+        : error.message;
+    // setLoading(false);
+    console.log("user apiCalls error - " + errorIs);
+    return errorIs;
+  }
+};
+
+////////////user wishlist start///////////////////////
+export const addToWishlist = async (token, productId) => {
+  try {
+    console.log("user api " + token);
+
+    const config = {
+      headers: { Authorization: `Bearer ${token}` },
+    };
+    // console.log(productId);
+    const response = await axiosUserInstance.get(
+      `/addtowishlist/${productId}`,
+      config
+    );
+    console.log(response);
+    return response;
+  } catch (error) {
+    const errorIs =
+      error.response && error.response.data.message
+        ? error.response.data.message
+        : error.message;
+    // setLoading(false);
+    console.log("user apiCalls error - " + errorIs);
+    return errorIs;
+  }
+};
+
+export const wishlistProductList = async (token) => {
+  try {
+    console.log("user api " + token);
+
+    const config = {
+      headers: { Authorization: `Bearer ${token}` },
+    };
+    // console.log(productId);
+    const response = await axiosUserInstance.get(`/getwishlist`, config);
+    // console.log(response);
+    return response;
+  } catch (error) {
+    const errorIs =
+      error.response && error.response.data.message
+        ? error.response.data.message
+        : error.message;
+    // setLoading(false);
+    console.log("user apiCalls error - " + errorIs);
+    return errorIs;
+  }
+};
+
+export const deleteWishList = async (token, productId) => {
+  try {
+    console.log("user api " + token);
+
+    const config = {
+      headers: { Authorization: `Bearer ${token}` },
+    };
+    // console.log(productId);
+    const response = await axiosUserInstance.get(
+      `/deletewishlist/${productId}`,
+      config
+    );
+    console.log(response);
+    return response;
+  } catch (error) {
+    const errorIs =
+      error.response && error.response.data.message
+        ? error.response.data.message
+        : error.message;
+    // setLoading(false);
+    console.log("user apiCalls error - " + errorIs);
+    return errorIs;
+  }
+};
+
+export const addToCartRemomeFromWishlist = async (token, productId) => {
+  try {
+    console.log("user api " + token);
+
+    const config = {
+      headers: { Authorization: `Bearer ${token}` },
+    };
+    // console.log(productId);
+    const response = await axiosUserInstance.get(
+      `/deletewishlistaddtocart/${productId}`,
+      config
+    );
+    console.log(response);
+    return response;
+  } catch (error) {
+    const errorIs =
+      error.response && error.response.data.message
+        ? error.response.data.message
+        : error.message;
+    // setLoading(false);
+    console.log("user apiCalls error - " + errorIs);
+    return errorIs;
+  }
+};
+////////////user wishlist end/////////////////////////
+
+//////////////banner start////////////////////////////
+export const userBanner = async (token, setLoading) => {
+  try {
+    const config = {
+      headers: { Authorization: `Bearer ${token}` },
+    };
+    const response = await axiosUserInstance.get("/getbanner", config);
+    console.log(response);
+    return response;
+  } catch (error) {
+    const errorIs =
+      error.response && error.response.data.message
+        ? error.response.data.message
+        : error.message;
+    setLoading(false);
+    console.log("admin apiCalls error - " + errorIs);
+    return errorIs;
+  }
+};
+//////////////banner end//////////////////////////////
+
+
+/////////////////////order start//////////////////////
+export const buildOrder = async (
+  token,
+  totalPrice,
+  orderAddress,
+  appliedCoupon,
+  discount,
+  paymentMethod,
+  setLoading
+) => {
+  try {
+    const config = {
+      headers: { Authorization: `Bearer ${token}` },
+    };
+    console.log("order api");
+    console.log(orderAddress);
+    const response = await axiosUserInstance.post(
+      "/orderproduct",
+      { orderAddress, totalPrice, appliedCoupon, discount, paymentMethod },
+      config
+    );
+    if (response.status === 201) {
+      // Successful response
+      return response;
+    } else {
+      // Handle other response status codes
+      // You can customize the error handling as needed
+      throw new Error(`Unexpected response status code: ${response.status}`);
+    }
+  } catch (error) {
+    const errorIs =
+      error.response && error.response.data.message
+        ? error.response.data.message
+        : error.message;
+    setLoading(false);
+    console.log(errorIs);
+    return errorIs;
+  }
+};
+/////////////////////order end////////////////////////

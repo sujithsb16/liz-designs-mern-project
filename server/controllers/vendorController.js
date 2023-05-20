@@ -90,7 +90,7 @@ const vendorDetails = asyncHandler(async (req,res) => {
 const addProduct = async (req, res) => {
    
   try {
-    const { name, price, description, category } = req.body;
+    const { name, price, description, category, qty } = req.body;
 
     let images = [...req.body.images];
 
@@ -121,11 +121,12 @@ const addProduct = async (req, res) => {
 
     
 
-    const product = await Product.create({
+    await Product.create({
       name,
       price,
       description,
       category,
+      qty,
       image: imagesBuffer,
       categoryId: categoryId._id,
       vendor: req.vendor._id,
@@ -163,6 +164,53 @@ const getVendorProduct = asyncHandler(async (req, res) => {
   res.status(201).json(productList);
 });
 
+const productStatusControl = asyncHandler(async (req, res) => {
+
+  try {
+
+     console.log("server test block product");
+     const { id } = req.params;
+     const { blocked } = req.body;
+
+     console.log("status before " + blocked);
+
+     const product = await Product.findById({ _id: id });
+
+     if (product) {
+       if (!product.adminBlocked) {
+         const updatedProduct = await Product.findByIdAndUpdate(
+           { _id: id },
+           { $set: { isBlocked: blocked ? false : true } }
+         );
+
+         if (updatedProduct) {
+           res.status(200).json({
+             success: true,
+             message: "Product blocked/unblocked successfully!",
+           });
+         }
+       }else{
+         res.status(404);
+         throw new Error("Product Blocked by Admin");
+
+       }
+     } else {
+       res.status(404);
+       throw new Error("Product not found");
+     }
+
+    
+  } catch (error) {
+
+     res.status(404);
+     throw new Error(error.message);
+    
+  }
+
+ 
+
+});
+
 
 
 module.exports = {
@@ -172,4 +220,5 @@ module.exports = {
   addProduct,
   getCategory,
   getVendorProduct,
+  productStatusControl,
 };

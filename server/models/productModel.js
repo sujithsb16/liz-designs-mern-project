@@ -8,11 +8,15 @@ const productSchema = new mongoose.Schema({
     trim: true,
   },
   price: {
-    type: String,
+    type: Number,
     required: true,
     trim: true,
   },
   isBlocked: {
+    type: Boolean,
+    default: false,
+  },
+  adminBlocked: {
     type: Boolean,
     default: false,
   },
@@ -25,6 +29,13 @@ const productSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
+  sales: {
+    type: Number,
+   default:0,
+  },
+  qty: {
+    type: Number,
+    },
   image: [
     {
       public_id: {

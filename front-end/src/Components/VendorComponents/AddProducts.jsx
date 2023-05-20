@@ -3,7 +3,6 @@ import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import Box from "@mui/material/Box";
 import PropTypes from "prop-types";
-import SwipeableViews from "react-swipeable-views";
 import { useTheme } from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
 import AppBar from "@mui/material/AppBar";
@@ -14,8 +13,10 @@ import Autocomplete from "@mui/material/Autocomplete";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { getCategory } from "../../actions/adminActions";
+import { confirmAlert } from "react-confirm-alert";
 import { useState } from "react";
 import {
+  productStatusControl,
   vendorAddProduct,
   vendorCategoryList,
   vendorProductList,
@@ -31,21 +32,17 @@ import TableCell, { tableCellClasses } from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
+import { useNavigate } from "react-router-dom";
 
-// const top100Films = [
-//   { label: 'The Shawshank Redempt', year: 1994 },
-//   { label: 'The Godfather', year: 1972 },
-//   { label: 'The Godfather: Part II', year: 1974 },]
+
 
 const initialValues = {
   name: "",
   price: "",
   description: "",
+  qty:"",
 };
 
-// const StyledTextField = styled(TextField)(({ theme }) => ({
-//   marginTop: theme.spacing(2), // Add margin top to create spacing
-// }));
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
     backgroundColor: theme.palette.primary.main,
@@ -104,6 +101,10 @@ function a11yProps(index) {
 }
 
 const AddProducts = () => {
+
+    const navigate = useNavigate();
+
+
   const [images, setImages] = useState([]);
   const [category, setCategory] = useState("");
 
@@ -112,6 +113,9 @@ const AddProducts = () => {
 
   const [categoryList, setCategoryList] = useState([]);
   const [productList, setProductList] = useState([]);
+
+    const [blockSuccess, setBlockSuccess] = useState(false);
+    const [verifySuccess, setVerifySuccess] = useState(false);  
 
   const [error, setError] = useState(false);
 
@@ -156,11 +160,12 @@ const AddProducts = () => {
   const submitHandler = async () => {
     // Prevents the default form submission behavior
     try {
-      setLoading(true);
+      // setLoading(true);
       const formData = {
         name: values.name,
         price: values.price,
         description: values.description,
+        qty:values.qty,
         category: category,
       };
 
@@ -242,11 +247,63 @@ const AddProducts = () => {
 
   /////////////////////////////////////////
 
+  /////////////////////////////////////////
+  const productBlock = async (id, status) => {
+    try {
+      setLoading(true);
+      const result = await productStatusControl(id, status, token, setLoading);
+
+      console.log("blocksucess2");
+
+      if (result.data) {
+        console.log("test 4 ");
+        console.log(result.data);
+        setBlockSuccess(!blockSuccess);
+      } else {
+        setError(true);
+        setTimeout(() => {
+          setError(false);
+        }, 4000);
+        toast.error(result);
+      }
+    } catch (error) {
+      setLoading(false);
+      console.log(error.message);
+    }
+  };
+
+  //////////////////////////////////////////
+
+  const handleProductBlock = (id, status) => {
+    confirmAlert({
+      title: "Confirm",
+      message: `Are you sure ?`,
+      buttons: [
+        {
+          label: "Yes",
+          onClick: () => {
+            productBlock(id, status);
+            // navigate("/admin");
+          },
+        },
+        {
+          label: "No",
+          onClick: () => navigate("/admin/tailors"),
+        },
+      ],
+    });
+  };
+
   ///////////////////////////////////////////
 
   const options = categoryList
     .filter(({ isBlocked }) => !isBlocked)
     .map(({ category }) => ({ label: category }));
+
+    useEffect(() => {
+       getProducts()
+      
+    }, [blockSuccess])
 
   useEffect(() => {
     getCategory();
@@ -283,32 +340,34 @@ const AddProducts = () => {
         </Box>
 
         <TabPanel value={value} index={0}>
-          <TableContainer
-            component={Paper}
-            sx={{
-              marginTop: "-.5rem",
-              height: "100%",
-              width: "69.5rem",
-              marginLeft: "7vw",
-            }}
-          >
-            <Table sx={{ minWidth: 700 }} aria-label="customized table">
-              <TableHead>
-                <TableRow>
-                  <StyledTableCell>Name</StyledTableCell>
-                  <StyledTableCell align="center">Price</StyledTableCell>
-                  <StyledTableCell align="center">Category</StyledTableCell>
-                  <StyledTableCell align="center">Status</StyledTableCell>
-                  {/* <StyledTableCell align="center">Carbs&nbsp;(g)</StyledTableCell> */}
-                  <StyledTableCell align="center">
-                    List/Unlist
-                  </StyledTableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {productList.map((product) => (
-                  <StyledTableRow key={product._id}>
-                   
+          {loading ? (
+            <Loading />
+          ) : (
+            <TableContainer
+              component={Paper}
+              sx={{
+                marginTop: "-.5rem",
+                height: "100%",
+                width: "69.5rem",
+                marginLeft: "7vw",
+              }}
+            >
+              <Table sx={{ minWidth: 700 }} aria-label="customized table">
+                <TableHead>
+                  <TableRow>
+                    <StyledTableCell>Name</StyledTableCell>
+                    <StyledTableCell align="center">Price</StyledTableCell>
+                    <StyledTableCell align="center">Category</StyledTableCell>
+                    <StyledTableCell align="center">Status</StyledTableCell>
+                    {/* <StyledTableCell align="center">Carbs&nbsp;(g)</StyledTableCell> */}
+                    <StyledTableCell align="center">
+                      List/Unlist
+                    </StyledTableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {productList.map((product) => (
+                    <StyledTableRow key={product._id}>
                       <>
                         <StyledTableCell component="th" scope="row">
                           {product.name}
@@ -320,13 +379,34 @@ const AddProducts = () => {
                           {product.categoryId.category}
                         </StyledTableCell>
                         <StyledTableCell align="center">
-                          {product.isVerified  ? <Typography variant="sub2"  color={"green"}>Verified</Typography> : <Typography variant="sub2"  color={"brown"}>Pending</Typography>}
+                          {product.isVerified ? (
+                            product.adminBlocked ? (
+                              <Typography variant="sub2" color="error">
+                                Admin blocked the product
+                              </Typography>
+                            ) : (
+                              <Typography variant="sub2" color="green">
+                                Verified
+                              </Typography>
+                            )
+                          ) : product.adminBlocked ? (
+                            <Typography variant="sub2" color="error">
+                              Admin blocked the product
+                            </Typography>
+                          ) : (
+                            <Typography variant="sub2" color="brown">
+                              Pending
+                            </Typography>
+                          )}
                         </StyledTableCell>
                         {/* <StyledTableCell align="center">{row.carbs}</StyledTableCell> */}
                         <StyledTableCell align="center">
                           <Button
                             variant="contained"
-                            color={product.isBlocked ? "error" : "success"}
+                            disabled={
+                              error || product.adminBlocked ? true : false
+                            }
+                            color={product.isBlocked ? "success" : "error"}
                             sx={{
                               width: "6rem", // Set the desired width for the button
                               "@media (max-width: 960px)": {
@@ -334,19 +414,22 @@ const AddProducts = () => {
                               },
                             }}
                             onClick={() => {
-                              // handleVendorBlock(product._id, product.isBlocked);
+                              handleProductBlock(
+                                product._id,
+                                product.isBlocked
+                              );
                             }}
                           >
-                            {!product.isBlocked ? "UnBlock" : "Block"}
+                            {product.isBlocked ? "UnBlock" : "Block"}
                           </Button>
                         </StyledTableCell>
                       </>
-                   
-                  </StyledTableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                    </StyledTableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
         </TabPanel>
         <TabPanel value={value} index={1}>
           <Box
@@ -413,6 +496,25 @@ const AddProducts = () => {
                       }
                       error={errors.price && touched.price ? true : false}
                       value={values.price}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      required
+                      fullWidth
+                      id="qty"
+                      name="qty"
+                      autoComplete="family-name"
+                      // size="small"
+                      label={
+                        errors.qty && touched.qty
+                          ? errors.qty
+                          : "Enter Quantity"
+                      }
+                      error={errors.qty && touched.qty ? true : false}
+                      value={values.qty}
                       onChange={handleChange}
                       onBlur={handleBlur}
                     />
@@ -509,7 +611,7 @@ const AddProducts = () => {
                       },
                     }}
                   >
-                    Sign Up
+                    AddProduct{" "}
                   </Button>
                 )}
                 <div id="recaptcha-container"></div>

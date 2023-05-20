@@ -128,5 +128,35 @@ export const vendorProductList = async (token, setLoading) => {
   }
 };
 
+export const productStatusControl = async (id, status, token, setLoading) => {
+  try {
+    console.log("token" + token);
+    const config = {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    const response = await axiosVendorInstance.patch(
+      `/blockproduct/${id}`,
+      { blocked: status },
+      config
+    );
+
+    console.log("blocksucess2");
+    console.log("response " + response);
+    return response;
+  } catch (error) {
+    const errorIs =
+      error.response && error.response.data.message
+        ? error.response.data.message
+        : error.message;
+    setLoading(false);
+    console.log("admin apiCalls error - " + errorIs);
+    return errorIs;
+  }
+};
+
 /////////////////////////////////////
 

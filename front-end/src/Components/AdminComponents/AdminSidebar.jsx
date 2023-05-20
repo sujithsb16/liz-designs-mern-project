@@ -17,6 +17,7 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import CategoryIcon from "@mui/icons-material/Category";
 import { setAdminLogout } from '../../Redux/adminSlice';
 import ViewCarouselIcon from "@mui/icons-material/ViewCarousel";
+import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 
 
 const AdminSidebar = (props) => {
@@ -112,6 +113,7 @@ const AdminSidebar = (props) => {
                 { text: "Products", href: "/admin/products" },
                 { text: "Category", href: "/admin/category" },
                 { text: "Banner", href: "/admin/banner" },
+                { text: "Coupon", href: "/admin/coupon" },
               ].map((item) => (
                 <ListItem key={item.text} disablePadding>
                   <ListItemButton
@@ -140,6 +142,8 @@ const AdminSidebar = (props) => {
                         <CategoryIcon />
                       ) : item.text === "Banner" ? (
                         <ViewCarouselIcon />
+                      ) : item.text === "Coupon" ? (
+                        <LocalOfferIcon />
                       ) : (
                         ""
                       )}

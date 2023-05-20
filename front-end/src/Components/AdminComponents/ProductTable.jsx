@@ -319,7 +319,7 @@ const ProductTable = () => {
                           <StyledTableCell align="center">
                             <Button
                               variant="contained"
-                              color={product.isBlocked ? "error" : "success"}
+                              color={product.isBlocked ? "success" : "error"}
                               sx={{
                                 width: "6rem", // Set the desired width for the button
                                 "@media (max-width: 960px)": {
@@ -333,7 +333,7 @@ const ProductTable = () => {
                                 );
                               }}
                             >
-                              {!product.isBlocked ? "UnBlock" : "Block"}
+                              {product.isBlocked ? "UnBlock" : "Block"}
                             </Button>
                           </StyledTableCell>
                         </>

@@ -21,21 +21,25 @@ import { useDispatch, useSelector } from "react-redux";
 import { setUserLogout } from "../Redux/userSlice";
 
 
-const links = ["/", "/shop"];
+const links = ["/", "/shop","/profile"];
 
-const pages = ["Home", "Shop"];
+const pages = ["Home", "Shop","Profile"];
 const settings = ["Profile", "Logout"];
 
 function Header() {
 
-  let userInfo
-
+  
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const userLogin = useSelector((state) => state.userLogin);
+  console.log(userLogin);
+  let userInfo
   if(userLogin){
      userInfo = userLogin.userInfo;
+     console.log(userInfo);
 
+    }else{
+      userInfo = null;
     }
  
 
@@ -125,7 +129,7 @@ const loginHandler = () => {
       }}
     >
       <Container maxWidth="xl" sx={{ bgcolor: "primary.main" }}>
-        <Toolbar disableGutters>
+        <Toolbar disableGutters sx={{ display: "flex", alignItems: "center" }}>
           <Typography
             variant="h6"
             noWrap
@@ -173,13 +177,18 @@ const loginHandler = () => {
                 display: { xs: "block", md: "none" },
               }}
             >
-              {pages.map((page) => (
-                <MenuItem key={page} onClick={handleCloseNavMenu}>
-                  <Typography textAlign="center" fontFamily="Inria Serif">
-                    {page}
-                  </Typography>
-                </MenuItem>
-              ))}
+              {pages.map((page) => {
+                if (page === "Profile" && !userInfo) {
+                  return null; // Return nothing to hide the link
+                }
+                return (
+                  <MenuItem key={page} onClick={handleCloseNavMenu}>
+                    <Typography textAlign="center" fontFamily="Inria Serif">
+                      {page}
+                    </Typography>
+                  </MenuItem>
+                );
+              })}
             </Menu>
           </Box>
           {/* <AdbIcon sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }} /> */}
@@ -197,6 +206,10 @@ const loginHandler = () => {
               letterSpacing: ".3rem",
               color: "inherit",
               textDecoration: "none",
+              "@media (max-width: 600px)": {
+                fontWeight: 200,
+                letterSpacing: ".2rem",
+              },
             }}
           >
             Liz Designs
@@ -208,40 +221,58 @@ const loginHandler = () => {
               textDecoration: "none",
             }}
           >
-            {pages.map((page, index) => (
-              <MenuItem key={page} onClick={handleCloseNavMenu}>
-                <Link
-                  key={index}
-                  to={`${links[index]}`}
-                  style={{ textDecoration: "none", color: "white" }}
-                >
-                  <Typography textAlign="center" fontFamily="Inria Serif">
-                    {page}
-                  </Typography>
-                </Link>
-              </MenuItem>
-            ))}
+            {pages.map((page, index) => {
+              // Check if the current page is "Profile" and userInfo is null
+              if (page === "Profile" && !userInfo) {
+                return null; // Return nothing to hide the link
+              }
+              // Otherwise, render the link as usual
+              return (
+                <MenuItem key={page} onClick={handleCloseNavMenu}>
+                  <Link
+                    key={index}
+                    to={`${links[index]}`}
+                    style={{ textDecoration: "none", color: "white" }}
+                  >
+                    <Typography textAlign="center" fontFamily="Inria Serif">
+                      {page}
+                    </Typography>
+                  </Link>
+                </MenuItem>
+              );
+            })}
           </Box>
 
-          {/* <FavoriteIcon sx={{ flexGrow: 0 }} /> */}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+              "@media (max-width: 600px)": {
+                marginRight: 1,
+                gap: 2,
+              },
+            }}
+          >
+            {userInfo ? (
+              <FavoriteIcon onClick={() => navigate("/wishlist")} />
+            ) : (
+              <FavoriteIcon onClick={loginHandler} />
+            )}
+            {userInfo ? (
+              <ShoppingCartIcon onClick={() => navigate("/cart")} />
+            ) : (
+              <ShoppingCartIcon onClick={loginHandler} />
+            )}
 
-          <ShoppingCartIcon sx={{ flexGrow: 0.09 }} />
-
-          {/* <Search>
-            <SearchIconWrapper>
-              <SearchIcon />
-            </SearchIconWrapper>
-            <StyledInputBase
-              placeholder="Search…"
-              inputProps={{ 'aria-label': 'search' }}
-            />
-          </Search> */}
-
-          <Box sx={{ flexGrow: 0.05 }}>
             <Tooltip title="Open settings">
               <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
                 {userInfo ? (
-                  <Typography textAlign="center" color="white">
+                  <Typography
+                    textAlign="center"
+                    sx={{ fontFamily: "Inria Serif", fontSize:18 }}
+                    color="white"
+                  >
                     {userInfo.name}
                   </Typography>
                 ) : (
@@ -250,7 +281,7 @@ const loginHandler = () => {
               </IconButton>
             </Tooltip>
             <Menu
-              sx={{ mt: "45px" }}
+              sx={{ mt: "3.5vh", ml: "3vw" }}
               id="menu-appbar"
               anchorEl={anchorElUser}
               anchorOrigin={{
@@ -267,6 +298,9 @@ const loginHandler = () => {
             >
               <MenuItem onClick={handleCloseUserMenu}>
                 <Typography textAlign="center">Home</Typography>
+              </MenuItem>
+              <MenuItem onClick={handleCloseUserMenu}>
+                <Typography textAlign="center">Profile</Typography>
               </MenuItem>
               <MenuItem onClick={handleCloseUserMenu}>
                 {userInfo ? (

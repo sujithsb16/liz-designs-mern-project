@@ -5,6 +5,9 @@ const { generateToken } = require("../utils/generateToken");
 const User = require("../models/userModel");
 const Category = require("../models/categoryModel");
 const Product = require("../models/productModel");
+const Coupon = require("../models/couponModel");
+const Banner = require("../models/bannerModel");
+const cloudinary = require("../utils/cloudinary");
 
 
 
@@ -175,15 +178,13 @@ const categoryStatusControl = asyncHandler(async (req, res) => {
 
   console.log("status before " + blocked);
 
-  const user = await Category.findByIdAndUpdate(
+  const category = await Category.findByIdAndUpdate(
     { _id: id },
     { $set: { isBlocked: blocked ? false : true } }
   );
-  const updatedUser = await Category.findById({ _id: id });
+  
 
-  console.log("status after " + updatedUser.isBlocked);
-
-  if (user) {
+  if (category) {
     res.status(200).json({
       success: true,
       message: "Category blocked/unblocked successfully!",
@@ -248,8 +249,15 @@ const productStatusControl = asyncHandler(async (req, res) => {
 
   const product = await Product.findByIdAndUpdate(
     { _id: id },
-    { $set: { isBlocked: blocked ? false : true } }
+    {
+      $set: {
+        isBlocked: blocked ? false : true,
+        adminBlocked: blocked ? false : true,
+      },
+    },
+    { new: true }
   );
+
   const updatedProduct = await Product.findById({ _id: id });
 
   console.log("status after " + updatedProduct.isBlocked);
@@ -268,7 +276,138 @@ const productStatusControl = asyncHandler(async (req, res) => {
 
 
 /////////////prodcut end/////////////////
+/////////////coupon start/////////////////
 
+const addCoupon = asyncHandler(async (req, res) => {
+  const { name, type, discount, validity, maxDiscount } = req.body;
+
+  // console.log(coupon);
+
+  if (name) {
+    await Coupon.create({ name, type, discount, validity, maxDiscount });
+    res.status(200).json({
+      success: true,
+      message: "Coupon Added!",
+    });
+  } else {
+    res.status(404);
+    throw new Error("Coupon Failed");
+  }
+});
+
+const getCoupon = asyncHandler(async (req, res) => {
+  const couponList = await Coupon.find();
+
+  res.status(201).json(couponList);
+});
+
+const couponStatusControl = asyncHandler(async (req, res) => {
+  console.log("server test block user");
+  const { id } = req.params;
+  const { blocked } = req.body;
+
+  console.log("status before " + blocked);
+
+  await Coupon.findByIdAndUpdate(
+    { _id: id },
+    { $set: { isBlocked: blocked ? false : true } }
+  );
+  const updatedCoupon = await Coupon.findById({ _id: id });
+
+  console.log("status after " + updatedCoupon.isBlocked);
+
+  if (updatedCoupon) {
+    res.status(200).json({
+      success: true,
+      message: "Coupon blocked/unblocked successfully!",
+    });
+  } else {
+    res.status(404);
+    throw new Error("User not found");
+  }
+});
+
+
+
+/////////////coupon end/////////////////
+
+///////////////banner start///////////
+const addBanner = async (req, res) => {
+  try {
+    const { bannerName, image } = req.body;
+
+    console.log(bannerName);
+
+    // let image = req.body;
+
+    console.log("add banner test");
+    console.log(image);
+
+
+    
+      const result = await cloudinary.uploader.upload(image, {
+        folder: "AdminBannerImage",
+      });
+
+      let imagesBuffer = {
+        public_id: result.public_id,
+        url: result.secure_url,
+      };
+
+   
+
+
+    await Banner.create({
+      banner:bannerName,
+      image: imagesBuffer,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Banner Added!",
+    });
+
+    //   .status(200)
+    //   .json({ message: "Form data submitted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: "Something went wrong" });
+    console.log(error);
+  }
+};
+
+const getBanner = asyncHandler(async (req, res) => {
+  const bannerList = await Banner.find();
+
+  res.status(201).json(bannerList);
+});
+
+const bannerStatusControl = asyncHandler(async (req, res) => {
+  console.log("server test block user");
+  const { id } = req.params;
+  const { blocked } = req.body;
+
+  console.log("status before " + blocked);
+
+  await Banner.findByIdAndUpdate(
+    { _id: id },
+    { $set: { isBlocked: blocked ? false : true } }
+  );
+  const updatedBanner = await Banner.findById({ _id: id });
+
+  console.log("status after " + updatedBanner.isBlocked);
+
+  if (updatedBanner) {
+    res.status(200).json({
+      success: true,
+      message: "Banner blocked/unblocked successfully!",
+    });
+  } else {
+    res.status(404);
+    throw new Error("Banner not found");
+  }
+});
+
+///////////////banner end/////////////
 
 
 
@@ -320,6 +459,12 @@ module.exports = {
   getAdminProduct,
   productVerifyControl,
   productStatusControl,
+  addCoupon,
+  getCoupon,
+  couponStatusControl,
+  addBanner,
+  getBanner,
+  bannerStatusControl,
 };
 
 
