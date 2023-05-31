@@ -12,7 +12,7 @@ import {
   Autocomplete,
 } from "@mui/material";
 import { useSelector } from "react-redux";
-import { buildOrder, getUserApi } from "../../apiCalls/userApiCalls";
+import { addAddressApi, buildOrder, getUserApi, paymentApi } from "../../apiCalls/userApiCalls";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -20,6 +20,19 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import CloseIcon from "@mui/icons-material/Close";
+import StripCheckout from "react-stripe-checkout"
+import { axiosUserInstance } from "../../utility/axios";
+import {CardElement, useElements, useStripe} from "@stripe/react-stripe-js"
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogTitle from "@mui/material/DialogTitle";
+import { useFormik } from "formik";
+import { userAddressSchema } from "../../schema/Validation";
+import { useNavigate } from "react-router-dom";
 
 const styles = {
   paper: {
@@ -67,7 +80,15 @@ const styles = {
   },
 };
 
+const initialAddress = {
+  title: "",
+  address: "",
+  city: "",
+  state: "",
+  zip: "",
+};
 
+const MySwal = withReactContent(Swal);
 
 const Checkout = () => {
   const [selectedAddress, setSelectedAddress] = useState("");
@@ -94,12 +115,20 @@ const Checkout = () => {
   const [totalPrice, setTotalPrice] = useState(0);
   const [appliedCoupon, setAppliedCoupon] = useState("")
   const [discount, setDiscount] = useState("")
-  
+  const [clientSecret, setClientSecret] = useState("")
+   const navigate = useNavigate();
+
   ///////////////////////////////////////////////////
   const token = useSelector((state) => state.userLogin.userInfo.token);
   const userInfo = useSelector((state) => state.userLogin.userInfo);
+  let userToken = token;
+     const [open, setOpen] = useState(false);
 
   ///////////////////////////////////////////////////
+
+    const elements = useElements();
+    const stripe = useStripe();
+
   ///////////////////////////////////////////////////////
 
   console.log(paymentMethod);
@@ -162,7 +191,75 @@ console.log( appliedCoupon);
 
   // console.log(totalPrice);
 
+  ////////////////////////////////////////////////////
+
+  const payNow = async token => {
+    try {
+      setLoading(true);
+      const paymentToken = token;
+      const result = await paymentApi(
+        totalPrice,
+        paymentToken,
+        userToken
+      );
+
+       if (result.status === 200) {
+        // handleSuccess();
+      }
+   
+
+    } catch (error) {
+      //  handleFailure();
+       console.log(error);
+      
+    }
+  }
+
+  const priceForStripe = totalPrice * 100;
   ////////////////////////////////////////////////////////
+  const formikAddress = useFormik({
+    initialValues: initialAddress,
+    validationSchema: userAddressSchema,
+    onSubmit: (values) => {
+      const address = {
+        title: values.title,
+        address: values.address,
+        state: values.state,
+        city: values.city,
+        zip: values.zip,
+      };
+
+      addAddress(address);
+
+      // submitHandler();
+
+      console.log("values");
+    },
+  });
+
+  ////////////////////////////////////////////////////////
+  const addAddress = async (address) => {
+    try {
+      setLoading(true);
+      const result = await addAddressApi(token, address, setLoading);
+      if (result.data) {
+        console.log("test 4 ");
+        console.log(result.data);
+               setOpen(false);
+        setAddAddressSuccess(!addAddressSuccess);
+      } else {
+        setError(true);
+        setTimeout(() => {
+          setError(false);
+        }, 4000);
+        setLoading(false);
+        console.log(result);
+      }
+      setLoading(false);
+    } catch (error) {}
+  };
+  ////////////////////////////////////////////////////////
+
 
   /////////////////////////////////////////////////////////
   const getUser = useCallback(async () => {
@@ -188,6 +285,16 @@ console.log( appliedCoupon);
     } catch (error) {}
   }, [token, setLoading]);
   ///////////////////////////////////////////////////////
+
+  
+     const handleClickOpen = () => {
+       setOpen(true);
+     };
+
+     const handleClose = () => {
+       setOpen(false);
+     };
+
 
   //////////////////////////////////////////////////////
   
@@ -218,6 +325,39 @@ console.log( appliedCoupon);
       const orderAddress = addresses[selectedAddress];
 
       if (paymentMethod === "credit_card"){
+const result = await buildOrder(
+  token,
+  totalPrice,
+  orderAddress,
+  appliedCoupon,
+  discount,
+  paymentMethod,
+  setLoading
+);
+if (result) {
+  console.log("2000");
+ await stripe.confirmCardPayment(clientSecret, {
+  payment_method:{
+    card:elements.getElement(CardElement)
+  }
+  
+ }).then((result) => {
+  MySwal.fire({
+    icon: "success",
+    title: "Payment was successful",
+    time: 4000,
+  }).then(()=>navigate(`/orderdetails/${result.data.order._id}`)
+);
+ }).catch((err) => console.warn(err))
+} else {
+  setError(true);
+  setTimeout(() => {
+    setError(false);
+  }, 4000);
+  setLoading(false);
+  console.log(result);
+}
+
 
       }else{
         const result = await buildOrder(
@@ -229,9 +369,17 @@ console.log( appliedCoupon);
           paymentMethod,
           setLoading
         );
+        console.log(result);
         if (result.data) {
           console.log("test 4 ");
           console.log(result.data);
+           MySwal.fire({
+             icon: "success",
+             title: result.message,
+             time: 4000,
+           }).then(() => {
+             navigate(`/orderdetails/${result.data.order._id}`);
+           });
         } else {
           setError(true);
           setTimeout(() => {
@@ -247,12 +395,32 @@ console.log( appliedCoupon);
 
   }
 
+  ////////////////////////////////////////////////////
+
   /////////////////////////////////////////////////////
 
    useEffect(() => {
      getUser();
      // getUser();
-   }, [getUser,]);
+   }, [getUser, addAddressSuccess]);
+
+   useEffect(() => {
+     const fetchClientSecret = async () => {
+       console.log(totalPrice);
+       const data = await axiosUserInstance.post("/payment/create", {
+         amount: totalPrice,
+       });
+       if (data?.data) {
+         setClientSecret(data.data.clientSecret);
+       }
+     };
+
+     if (paymentMethod === "credit_card") {
+       fetchClientSecret();
+     }
+   }, [totalPrice, paymentMethod]);
+
+  
 
    console.log(user.addresses);
 
@@ -309,7 +477,9 @@ const addresses =  user.addresses
                   </Typography>
                 </div>
               ))}
+            <Button onClick={handleClickOpen}>Add Address</Button>
           </div>
+
           <div style={styles.paymentMethodContainer}>
             <Typography
               variant="h6"
@@ -344,6 +514,7 @@ const addresses =  user.addresses
                 />
               </RadioGroup>
             </FormControl>
+            {paymentMethod === "credit_card" && <CardElement />}
           </div>
           <div style={styles.couponContainer}>
             <Typography
@@ -504,6 +675,102 @@ const addresses =  user.addresses
           </Button>
         </Paper>
       </Grid>
+      <Dialog open={open} onClose={handleClose}>
+        <DialogTitle>Address</DialogTitle>
+        <DialogContent sx={{ display: "flex", flexDirection: "column" }}>
+          <DialogContentText>Please Enter Address Details</DialogContentText>
+          <TextField
+            label={
+              formikAddress.errors.title && formikAddress.touched.title
+                ? formikAddress.errors.title
+                : "title"
+            }
+            error={
+              formikAddress.errors.title && formikAddress.touched.title
+                ? true
+                : false
+            }
+            onChange={formikAddress.handleChange}
+            onBlur={formikAddress.handleBlur}
+            name="title"
+            margin="normal"
+            size={"small"}
+          />
+          <TextField
+            label={
+              formikAddress.errors.address && formikAddress.touched.address
+                ? formikAddress.errors.address
+                : "address"
+            }
+            error={
+              formikAddress.errors.address && formikAddress.touched.address
+                ? true
+                : false
+            }
+            onChange={formikAddress.handleChange}
+            onBlur={formikAddress.handleBlur}
+            name="address"
+            margin="normal"
+            size={"small"}
+          />
+          <TextField
+            name="city"
+            margin="normal"
+            label={
+              formikAddress.errors.city && formikAddress.touched.city
+                ? formikAddress.errors.city
+                : "city"
+            }
+            error={
+              formikAddress.errors.city && formikAddress.touched.city
+                ? true
+                : false
+            }
+            onChange={formikAddress.handleChange}
+            onBlur={formikAddress.handleBlur}
+            size={"small"}
+          />
+          <TextField
+            label={
+              formikAddress.errors.state && formikAddress.touched.city
+                ? formikAddress.errors.state
+                : "state"
+            }
+            error={
+              formikAddress.errors.state && formikAddress.touched.state
+                ? true
+                : false
+            }
+            onChange={formikAddress.handleChange}
+            onBlur={formikAddress.handleBlur}
+            name="state"
+            margin="normal"
+            size={"small"}
+          />
+          <TextField
+            label={
+              formikAddress.errors.zip && formikAddress.touched.zip
+                ? formikAddress.errors.zip
+                : "zip code"
+            }
+            error={
+              formikAddress.errors.zip && formikAddress.touched.zip
+                ? true
+                : false
+            }
+            onChange={formikAddress.handleChange}
+            onBlur={formikAddress.handleBlur}
+            name="zip"
+            margin="normal"
+            size={"small"}
+          />
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={handleClose}>Cancel</Button>
+          <Button onClick={formikAddress.handleSubmit}>Add</Button>
+        </DialogActions>
+      </Dialog>
     </Grid>
   );
 };

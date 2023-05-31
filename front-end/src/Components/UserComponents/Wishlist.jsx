@@ -52,8 +52,9 @@ const StyledPaper = styled(Paper)`
   box-shadow: 10px 10px 20px rgba(0, 0, 0, 0.2);
 `;
 
-const CartItemsContainer = styled(Box)`
+const wishlistItemsContainer = styled(Box)`
   padding: ${(props) => props.theme.spacing(2)};
+  margin:5px
 `;
 
 const EmptyCart = styled(Box)`
@@ -63,13 +64,28 @@ const EmptyCart = styled(Box)`
   height: 200px;
 `;
 
-const WishlistItem = ({ item, imageUrl, setAddSuccess, addSuccess }) => {
+const SmallImage = styled("img")({
+  width: "100%",
+  maxHeight: 170,
+  objectFit: "cover",
+  cursor: "pointer",
+  "@media (max-width: 600px)": {
+    width: "70%",
+    marginY: 2,
+  },
+});
+
+const WishlistItem = ({
+  item,
+  imageUrl,
+  setAddSuccess,
+  wishlistItems,
+  setWishlistItems,
+}) => {
   const user = useSelector((state) => state.userLogin);
   const token = user?.userInfo?.token;
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
-
- 
 
   const handleAddToCart = async (productId) => {
     try {
@@ -82,8 +98,10 @@ const WishlistItem = ({ item, imageUrl, setAddSuccess, addSuccess }) => {
       if (result.data) {
         console.log("test 4 ");
         console.log(result.data);
-        setAddSuccess(!addSuccess);
-        toast.success("Success");
+         setWishlistItems(
+           wishlistItems.filter((item) => item.productId._id !== productId)
+         );
+        toast.success("Added To Cart");
         setLoading(false);
       } else {
         setError(true);
@@ -98,7 +116,6 @@ const WishlistItem = ({ item, imageUrl, setAddSuccess, addSuccess }) => {
     }
   };
 
-
   const handleRemoveFromWishlist = async (productId) => {
     try {
       setLoading(true);
@@ -110,8 +127,13 @@ const WishlistItem = ({ item, imageUrl, setAddSuccess, addSuccess }) => {
       if (result.data) {
         console.log("test 4 ");
         console.log(result.data);
-        setAddSuccess(!addSuccess);
-        toast.success("Success");
+        console.log(wishlistItems);
+        setWishlistItems(
+          wishlistItems.filter(
+            (item) => item.productId._id !== productId
+          )
+        );
+      toast.success("Removed From Wishlist", { icon: "💔" });
         setLoading(false);
       } else {
         setError(true);
@@ -133,7 +155,19 @@ const WishlistItem = ({ item, imageUrl, setAddSuccess, addSuccess }) => {
         height="100"
         image={imageUrl}
         alt={item.name}
-        sx={{ marginRight: "10px", maxWidth: "18vw", minHeight: "30vh" }}
+        sx={{
+          marginRight: "10px",
+          maxWidth: "8vw",
+          minHeight: "35vh",
+          // width: "100%",
+          maxHeight: 170,
+          objectFit: "cover",
+          cursor: "pointer",
+          "@media (max-width: 600px)": {
+            width: "70%",
+            marginY: 2,
+          },
+        }}
       />
       <Box sx={{ flexGrow: 1 }}>
         <CardContent sx={{ display: "flex", flexDirection: "column" }}>
@@ -149,7 +183,7 @@ const WishlistItem = ({ item, imageUrl, setAddSuccess, addSuccess }) => {
             gutterBottom
             style={{ fontFamily: "Arial, sans-serif", fontSize: "1rem" }}
           >
-            {item.productId.price}
+            ₹{item.productId.price}
           </Typography>
         </CardContent>
         <CardActions sx={{ justifyContent: "flex-end" }}>
@@ -157,11 +191,11 @@ const WishlistItem = ({ item, imageUrl, setAddSuccess, addSuccess }) => {
             variant="contained"
             color="primary"
             onClick={() => handleAddToCart(item.productId._id)}
+            sx={{ borderRadius: 5, fontFamily: "Inria Serif" }}
           >
             Add To Cart
           </Button>
 
-          
           <IconButton
             aria-label="Remove item"
             onClick={() => handleRemoveFromWishlist(item.productId._id)}
@@ -185,7 +219,6 @@ const token = user?.userInfo?.token;
 const [error, setError] = useState(false);
 const [loading, setLoading] = useState(false);
 const [wishlistItems, setWishlistItems] = useState([]);
-const [addSuccess, setAddSuccess] = useState(false);
 
 
 
@@ -198,7 +231,7 @@ const [addSuccess, setAddSuccess] = useState(false);
       if (result.data) {
         console.log("test 4 ");
         //    console.log(result.data);
-        setWishlistItems(result.data);
+        setWishlistItems(result.data.wishlist.item);
       } else {
         setError(true);
         setTimeout(() => {
@@ -214,7 +247,7 @@ const [addSuccess, setAddSuccess] = useState(false);
 
   useEffect(() => {
     getWishlist();
-  }, [getWishlist, addSuccess ]);
+  }, [getWishlist,  ]);
 
   ///////////////////////////////////////////////
 
@@ -222,19 +255,21 @@ const [addSuccess, setAddSuccess] = useState(false);
    <Typography variant="subtitle1">Your wishlist is empty</Typography>
  );
 
- const wishlistItemsContent = wishlistItems?.wishlist?.item ? (
+ const wishlistItemsContent = wishlistItems ? (
    <>
      <wishlistItemsContainer>
-       {wishlistItems.wishlist.item.length > 0 ? (
-         wishlistItems.wishlist.item.map((item) => (
+       <Toaster />
+
+       {wishlistItems.length > 0 ? (
+         wishlistItems.map((item) => (
            <WishlistItem
              key={item.id}
              item={item}
-            //  handleUpdateCartQty={handleUpdateCartQty}
-            //  handleRemoveFromCart={handleRemoveFromCart}
+             wishlistItems={wishlistItems}
+             //  handleUpdateCartQty={handleUpdateCartQty}
+             //  handleRemoveFromCart={handleRemoveFromCart}
              imageUrl={item.productId.image?.[0]?.url}
-             setAddSuccess={setAddSuccess}
-             addSuccess={addSuccess}
+             setWishlistItems={setWishlistItems}
            />
          ))
        ) : (
@@ -254,6 +289,9 @@ const [addSuccess, setAddSuccess] = useState(false);
          {/* {wishlistItems.item
            .reduce((acc, item) => acc + item.productId.price, 0)
            .toFixed(2)} */}
+         {wishlistItems
+           .reduce((acc, item) => acc + item.productId.price * 1, 0)
+           .toFixed(2)}
        </Typography>
      </Box>
    </>
@@ -268,8 +306,6 @@ const [addSuccess, setAddSuccess] = useState(false);
   return (
     <>
       <Wrapper>
-        <Toaster toasterOptions={{ duratiom: 4000 }} />
-
         <StyledPaper>
           <Typography
             variant="h4"
@@ -281,10 +317,17 @@ const [addSuccess, setAddSuccess] = useState(false);
           </Typography>
           {wishlistItemsContent}
           <Box m={2} display="flex" justifyContent="space-between">
-            <Button variant="outlined" href="/">
+            <Button
+              variant="outlined"
+              sx={{ fontFamily: "Inria Serif", borderRadius: 5 }}
+              onClick={() => {
+                navigate("/shop");
+              }}
+            >
               Continue Shopping
             </Button>
             <Button
+              sx={{ fontFamily: "Inria Serif", borderRadius: 5 }}
               variant="contained"
               color="primary"
               onClick={() => {

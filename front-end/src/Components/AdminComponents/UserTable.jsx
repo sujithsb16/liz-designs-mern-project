@@ -24,31 +24,7 @@ import axios from "axios";
 import { adminUserList, userStatusControl } from "../../apiCalls/adminApiCalls";
 import toast, { Toaster } from "react-hot-toast";
 
-function TabPanel(props) {
-  const { children, value, index, ...other } = props;
 
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
-    >
-      {value === index && (
-        <Box sx={{ p: 3 }}>
-          <Typography>{children}</Typography>
-        </Box>
-      )}
-    </div>
-  );
-}
-
-TabPanel.propTypes = {
-  children: PropTypes.node,
-  index: PropTypes.number.isRequired,
-  value: PropTypes.number.isRequired,
-};
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
@@ -183,9 +159,10 @@ const allUserList = useCallback(async () => {
   return (
     <>
       <Box
+        spacing={4}
         sx={{
           width: "100%",
-          paddindTop: "10rem",
+          paddindTop: "5rem",
           overflowX: "auto", // Add horizontal scrolling for smaller screens
           "&::-webkit-scrollbar": {
             height: "0.4rem",
@@ -200,10 +177,10 @@ const allUserList = useCallback(async () => {
           sx={{
             borderBottom: 1,
             borderColor: "divider",
-            paddingTop: "5rem",
+            paddingTop: "2vh",
             justifyContent: "center",
             width: "100%", // Update to use 100% width
-            maxWidth: "69rem", // Add maxWidth for better responsiveness
+            maxWidth: "69.5rem", // Add maxWidth for better responsiveness
             margin: "0 auto", // Center align the container
             overflowX: "hidden", // Add horizontal scrolling for smaller screens
             "@media (min-width: 960px)": {

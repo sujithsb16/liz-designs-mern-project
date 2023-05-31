@@ -75,7 +75,7 @@ const orderSchema = new mongoose.Schema({
 
   status: {
     type: String,
-    default: "Attempted",
+    default: "Build",
   },
   discount: {
     type: Number,

@@ -477,3 +477,103 @@ export const adminAddBanner = async (bannerName, image, token, setLoading) => {
 };
 
 ///////////////banner api end///////////
+
+///////////////order api start///////
+export const adminOrderList = async (token, setLoading) => {
+  try {
+    const config = {
+      headers: { Authorization: `Bearer ${token}` },
+    };
+    const response = await axiosAdminInstance.get("/getorders", config);
+    console.log(response);
+    return response;
+  } catch (error) {
+    const errorIs =
+      error.response && error.response.data.message
+        ? error.response.data.message
+        : error.message;
+    setLoading(false);
+    console.log("admin apiCalls error - " + errorIs);
+    return errorIs;
+  }
+};
+
+export const orderStatusControl = async (id, token, setLoading,status) => {
+  try {
+    console.log("token" + token);
+    const config = {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    const response = await axiosAdminInstance.patch(
+      `/orderstatus/${id}`,
+      {status},
+      config
+    );
+
+    console.log("blocksucess2");
+    console.log("response " + response);
+    return response;
+  } catch (error) {
+    const errorIs =
+      error.response && error.response.data.message
+        ? error.response.data.message
+        : error.message;
+    setLoading(false);
+    console.log("admin apiCalls error - " + errorIs);
+    return errorIs;
+  }
+};
+export const orderDeliverApi = async (id, token, setLoading) => {
+  try {
+    console.log("token" + token);
+    const config = {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    const response = await axiosAdminInstance.patch(
+      `/orderdeliver/${id}`,
+      { token },
+      config
+    );
+
+    console.log("blocksucess2");
+    console.log("response " + response);
+    return response;
+  } catch (error) {
+    const errorIs =
+      error.response && error.response.data.message
+        ? error.response.data.message
+        : error.message;
+    setLoading(false);
+    console.log("admin apiCalls error - " + errorIs);
+    return errorIs;
+  }
+};
+///////////////order api end/////////
+
+/////////////graph//////////////////
+export const graphDataApi = async () => {
+  try {
+   
+    const response = await axiosAdminInstance.get("/graphdata");
+    console.log(response);
+
+
+    return response.data;
+  } catch (error) {
+    const errorIs =
+      error.response && error.response.data.message
+        ? error.response.data.message
+        : error.message;
+    console.log("admin apiCalls error - " + errorIs);
+    return errorIs;
+  }
+};
+///////////////////////////////////

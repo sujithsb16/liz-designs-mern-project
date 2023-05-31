@@ -6,6 +6,10 @@ const Product = require("../models/productModel");
 const Coupon = require("../models/couponModel");
 const Banner = require("../models/bannerModel");
 const Order = require("../models/orderModel");
+const stripe = require("stripe")(
+  "sk_test_51NASgsSGT6N9oHP6KXVy0oN7R5IuRbVkADCZ87GqSONsJ3jUK507kifgTDsvnisQioonYYPAorYHJWTsRjnjIQPi00yIHNpaEY"
+);
+
 
 // const registerUser = asyncHandler(async (req, res) => {
 //   const { name, email, mobile, password, isAdmin } = req.body;
@@ -100,6 +104,8 @@ const userLogin = asyncHandler(async (req, res) => {
   console.log(email);
 
   const user = await User.findOne({ email });
+
+  console.log(user);
   
   if (user && (await user.matchPassword(password))) {
     res.status(201).json({
@@ -162,9 +168,39 @@ if (!user) {
 
 
 const getProduct = asyncHandler(async (req, res) => {
-  const productList = await Product.find();
 
-  res.status(201).json(productList);
+  try {
+    const { vendorId } = req.body;
+
+    if (vendorId) {
+      const productList = await Product.find({ vendor: vendorId });
+      res.status(201).json(productList);
+    } else {
+      const productList = await Product.find();
+      res.status(201).json(productList);
+    }
+    
+  } catch (error) {
+
+   res.status(500).json(error.message);
+
+    
+  }
+
+  const {vendorId} = req.body
+  
+  if(vendorId){
+    const productList = await Product.find({ vendor: vendorId });
+     res.status(201).json(productList);
+
+  }else{
+
+    const productList = await Product.find();
+     res.status(201).json(productList);
+  }
+
+
+ 
 });
 
 const getSingletProduct = asyncHandler(async (req, res) => {
@@ -252,12 +288,14 @@ const userProfile = asyncHandler(async (req, res) => {
 
     const coupons = await Coupon.find({ isBlocked: false });
     const user = await User.findById({ _id: userId }).select("-password");
-    const orders = await Order.find({ userId: user._id }).populate({
-      path: "products.items.productId",
-    }).populate({
-      path: "couponApplied",
-    });
-
+    const orders = await Order.find({ userId: user._id }).populate([
+      {
+        path: "products.items.productId",
+      },
+      {
+        path: "couponApplied",
+      },
+    ]);
     if(!coupons){
       res.status(400);
       throw new Error("No coupons availabe");
@@ -324,6 +362,38 @@ const addAddress = asyncHandler(async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
+const deleteAddress = asyncHandler(async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const index = req.params.id;
+
+    console.log(userId);
+
+    const user = await User.findById({ _id: userId });
+
+    if (!user) {
+      res.status(400);
+      throw new Error("User Not Found");
+    }
+
+    // Check if the index is valid
+    if (index >= 0 && index < user.addresses.length) {
+      // Remove the address at the specified index
+      user.addresses.splice(index, 1);
+
+      await user.save();
+
+      res.status(200).json({ message: "Address deleted successfully" });
+    } else {
+      res.status(400);
+      throw new Error("Invalid Address Index");
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
 
 const activateCoupon = asyncHandler(async (req, res) => {
   try {
@@ -380,9 +450,10 @@ const deleteCart = asyncHandler(async (req, res, next) => {
 const pagination = asyncHandler(async (req, res) => {
   try {
     const user = req.user;
-    const product = await Protduct.findAll({ where: { userId: user.id } });
+    const product = await Product.find();
     const page = parseInt(req.params.page);
     const limit = parseInt(req.params.limit);
+    console.log(page, limit);
     const startIndex = (page - 1) * limit;
     const lastIndex = page * limit;
 
@@ -403,10 +474,6 @@ const pagination = asyncHandler(async (req, res) => {
         page: page - 1,
       };
     }
-
-    // const pendingTasks = tasks?.filter((task) => !task.status);
-
-    // results.pendingTasks = pendingTasks.length;
 
     results.result = product.slice(startIndex, lastIndex);
     res.status(200).json(results);
@@ -570,12 +637,117 @@ const buildOrder = asyncHandler(async (req, res) => {
        { $push: { usedBy: user._id } }
      );
 
-    console.log(order);
+     user.cart.items = [];
+     user.cart.totalPrice = 0;
+     await user.save();
+
+     const populatedOrder = await Order.findById(order._id)
+       .populate("userId", "-password")
+       .populate("products.items.productId")
+       .populate("couponApplied");
+
+     res
+       .status(201)
+       .json({ message: "Order placed successfully", order: populatedOrder });
+
   } catch (error) {
     // Handle and log the error
     console.error("An error occurred while creating the order:", error);
     // Return an error response to the client
     res.status(500).json({ message: "Failed to create the order" });
+  }
+});
+
+const cancelOrder = asyncHandler(async (req, res) => {
+  try {
+    const user = req.user;
+    const orderId = req.params.id;
+
+    const order = await Order.findById(orderId);
+
+    order.status = "cancelled";
+    await order.save();
+
+    const productDetails = await Product.find();
+    for (let i = 0; i < productDetails.length; i++) {
+      for (let j = 0; j < order.products.items.length; j++) {
+        if (
+          productDetails[i]._id.equals(
+            order.products.items[j].productId && productDetails[i].sales!=0
+          )
+        ) {
+          productDetails[i].sales -= order.products.items[j].qty;
+          productDetails[i].qty += order.products.items[j].qty;
+          await productDetails[i].save();
+        }
+      }
+    }
+
+    if (order.discount && order.couponApplied) {
+      await Coupon.updateOne(
+        { _id: order.couponApplied },
+        { $pull: { usedBy: user._id } }
+      );
+    }
+
+
+    
+
+    console.log(order);
+
+    res.status(200).json({ message: "Order cancelled successfully" });
+  } catch (error) {
+    // Handle and log the error
+    console.error("An error occurred while cancelling the order:", error);
+    // Return an error response to the client
+    res.status(500).json({ message: "Failed to cancel the order" });
+  }
+});
+
+
+
+const payment = asyncHandler(async (req, res) => {
+    const { amount } = req.body;
+    console.log(amount);
+
+  try {
+   if(amount != 0){
+     const payment = await stripe.paymentIntents.create({
+       amount:amount * 100,
+       currency: "inr",
+       
+     });
+     console.log(payment.client_secret);
+         res.status(201).json({ clientSecret: payment.client_secret });
+
+   }
+   
+
+    // res.send(201).send({ clientSecret: payment.client_secret });
+
+    
+  } catch (error) {
+    // Handle and log the error
+    console.error("An error occurred while  the order:", error);
+    // Return an error response to the client
+    res.status(500).json({ message: "Failed to cancel the order" });
+  }
+});
+
+const getOrderDetails = asyncHandler(async (req, res) => {
+  try {
+    const orderId = req.params.id;
+    const user = req.user;
+     const populatedOrder = await Order.findById(orderId)
+       .populate("userId", "-password")
+       .populate("products.items.productId")
+       .populate("couponApplied");
+
+     res
+       .status(201)
+       .json({ message: "Order placed successfully", order: populatedOrder });
+  } catch (error) {
+    console.log(error.message);
   }
 });
 
@@ -605,4 +777,8 @@ module.exports = {
   getwishlist,
   getBanner,
   buildOrder,
+  cancelOrder,
+  payment,
+  deleteAddress,
+  getOrderDetails,
 };

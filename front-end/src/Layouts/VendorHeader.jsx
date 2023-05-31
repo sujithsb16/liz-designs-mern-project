@@ -139,8 +139,8 @@ const { vendorInfo } = vendorDetail;
             <Button
               color="inherit"
               sx={{ marginLeft: "auto" }}
-              onClick={()=>{
-                navigate("/vendor")
+              onClick={() => {
+                navigate("/vendor");
               }}
             >
               Login
@@ -155,9 +155,11 @@ const { vendorInfo } = vendorDetail;
           open={Boolean(anchorEl)}
           onClose={handleMenuClose}
         >
-          <MenuItem onClick={handleMenuClose}>Item 1</MenuItem>
-          <MenuItem onClick={handleMenuClose}>Item 2</MenuItem>
-          <MenuItem onClick={handleMenuClose}>Item 3</MenuItem>
+          <MenuItem onClick={() => navigate("/vendorhome")}>Dashboard</MenuItem>
+          <MenuItem onClick={() => navigate("/vendor/addproducts")}>
+            Products
+          </MenuItem>
+          <MenuItem onClick={() => navigate("/vendor/orders")}>Orders</MenuItem>
         </Menu>
       </StyledAppBar>
     </>

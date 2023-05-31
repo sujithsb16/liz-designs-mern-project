@@ -9,6 +9,7 @@ import AdminCategoryPage from '../../pages/adminPages/AdminCategoryPage';
 import AdminProductPage from '../../pages/adminPages/AdminProductPage';
 import AdminBannerPage from '../../pages/adminPages/AdminBannerPage';
 import AdminCouponPage from '../../pages/adminPages/AdminCouponPage';
+import AdminOrderPage from '../../pages/adminPages/AdminOrderPage';
 
 
 const ProtectedRoute = ({ children }) => {
@@ -44,7 +45,10 @@ const AdminRoutes = () => {
       <BrowserRouter>
         <Routes>
           <Route path="/admin/adminsignin" element={<AdminSignIn />} />
-          <Route path="/admin"  element={<ConditionalRendering isAuthenticated={isAuthenticated}/>} />
+          <Route
+            path="/admin"
+            element={<ConditionalRendering isAuthenticated={isAuthenticated} />}
+          />
           {/* <Route path="/admin/dashboard" element={<AdminDashboard />} /> */}
           {/* <Route path="/admin/users" element={<AdminUserPage />} />
           <Route path="/admin/tailors" element={<AdminVendorPage />} /> */}
@@ -106,7 +110,14 @@ const AdminRoutes = () => {
               </ProtectedRoute>
             }
           />
-
+          <Route
+            path="/admin/orders"
+            element={
+              <ProtectedRoute>
+                <AdminOrderPage />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </BrowserRouter>
     </>

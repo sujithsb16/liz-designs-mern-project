@@ -18,7 +18,7 @@ import CategoryIcon from "@mui/icons-material/Category";
 import { setAdminLogout } from '../../Redux/adminSlice';
 import ViewCarouselIcon from "@mui/icons-material/ViewCarousel";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
-
+import ShoppingBasketIcon from "@mui/icons-material/ShoppingBasket";
 
 const AdminSidebar = (props) => {
 
@@ -83,7 +83,6 @@ const AdminSidebar = (props) => {
           </Toolbar>
         </AppBar>
         <Drawer
-          // anchor="right"
           variant="permanent"
           sx={{
             width: 240,
@@ -93,19 +92,13 @@ const AdminSidebar = (props) => {
               boxSizing: "border-box",
             },
             "@media (max-width: 600px)": {
-              // Media query for smaller devices
-              width: 180, // Width for smaller devices
-              flexShrink: 0,
-              [`& .MuiDrawer-paper`]: {
-                width: 180,
-                boxSizing: "border-box",
-              },
+              display: "none", // Hide the drawer for screens smaller than 600px
             },
           }}
         >
           <Toolbar />
           <Box sx={{ overflow: "auto" }}>
-            <List>
+            <List sx={{ padding: ".5vw" }}>
               {[
                 { text: "Dashboard", href: "/admin/dashboard" },
                 { text: "Users", href: "/admin/users" },
@@ -114,6 +107,7 @@ const AdminSidebar = (props) => {
                 { text: "Category", href: "/admin/category" },
                 { text: "Banner", href: "/admin/banner" },
                 { text: "Coupon", href: "/admin/coupon" },
+                { text: "Orders", href: "/admin/orders" },
               ].map((item) => (
                 <ListItem key={item.text} disablePadding>
                   <ListItemButton
@@ -144,6 +138,8 @@ const AdminSidebar = (props) => {
                         <ViewCarouselIcon />
                       ) : item.text === "Coupon" ? (
                         <LocalOfferIcon />
+                      ) : item.text === "Orders" ? (
+                        <ShoppingBasketIcon />
                       ) : (
                         ""
                       )}

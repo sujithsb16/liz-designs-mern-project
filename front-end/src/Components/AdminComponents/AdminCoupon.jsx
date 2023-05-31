@@ -78,9 +78,10 @@ const { values, errors, touched, handleBlur, handleChange, handleSubmit } =
      const admin = useSelector((state) => state.adminLogin);
      const token = admin.adminInfo.token;
 
-     const navigate = useNavigate();
+      const navigate = useNavigate();
 
      const [open, setOpen] = useState(false);
+     
      const [id, setId] = useState("");
      const [value, setValue] = useState(null);
      const [error, setError] = useState(false);

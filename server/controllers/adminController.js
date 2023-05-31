@@ -8,6 +8,7 @@ const Product = require("../models/productModel");
 const Coupon = require("../models/couponModel");
 const Banner = require("../models/bannerModel");
 const cloudinary = require("../utils/cloudinary");
+const Order = require("../models/orderModel");
 
 
 
@@ -409,8 +410,203 @@ const bannerStatusControl = asyncHandler(async (req, res) => {
 
 ///////////////banner end/////////////
 
+///////////////order start///////////
+const getOrder = asyncHandler(async (req, res) => {
+  try {
+const orders = await Order.find()
+  .populate([
+    {
+      path: "products.items.productId",
+    },
+    {
+      path: "couponApplied",
+    },
+    {
+      path: "userId",
+    },
+  ])
+  .sort({ createdDate: -1 });
+
+res.status(201).json(orders);    
+  } catch (error) {
+
+    log
+
+    res.status(500).json(error.message)
+    
+  }
+
+});
+
+const orderStatusControl = asyncHandler(async (req, res) => {
+  try {
+
+     console.log("server test block product");
+     const { id } = req.params;
+     const { status } = req.body;
+
+     console.log(status);
+
+     // console.log("status before " + blocked);
+
+     if (status === "Build") {
+       const order = await Order.findByIdAndUpdate(
+         { _id: id },
+         {
+           $set: {
+             status: "Confirmed",
+           },
+         },
+         { new: true }
+       );
+
+       if (order) {
+         res.status(200).json({
+           success: true,
+           message: "order status changed successfully!",
+         });
+       } else {
+         res.status(404);
+         throw new Error("Order not found");
+       }
+     }
+     if (status === "Confirmed") {
+       const order = await Order.findByIdAndUpdate(
+         { _id: id },
+         {
+           $set: {
+             status: "Packed",
+           },
+         },
+         { new: true }
+       );
+       if (order) {
+         res.status(200).json({
+           success: true,
+           message: "order status changed successfully!",
+         });
+       } else {
+         res.status(404);
+         throw new Error("Order not found");
+       }
+     }
+     if (status === "Packed") {
+       const order = await Order.findByIdAndUpdate(
+         { _id: id },
+         {
+           $set: {
+             status: "Shipped",
+           },
+         },
+         { new: true }
+       );
+       if (order) {
+         res.status(200).json({
+           success: true,
+           message: "order status changed successfully!",
+         });
+       } else {
+         res.status(404);
+         throw new Error("Order not found");
+       }
+     }
+
+     if (status === "Shipped") {
+       const order = await Order.findByIdAndUpdate(
+         { _id: id },
+         {
+           $set: {
+             status: "Delivered",
+           },
+         },
+         { new: true }
+       );
+       if (order) {
+         res.status(200).json({
+           success: true,
+           message: "order status changed successfully!",
+         });
+       } else {
+         res.status(404);
+         throw new Error("Order not found");
+       }
+     }
+  
+
+    
+  } catch (error) {
+
+     res.status(500).json({
+       success: true,
+       message: error.message,
+     });
+    
+  }
+ 
+  
+
+ 
+ 
+});
+const orderDeliver = asyncHandler(async (req, res) => {
+  console.log("server test block product");
+  const { id } = req.params;
+
+  // console.log("status before " + blocked);
+
+  const order = await Order.findByIdAndUpdate(
+    { _id: id },
+    {
+      $set: {
+        status: "Delivered",
+      },
+    },
+    { new: true }
+  );
+
+  
+
+ 
+  if (order) {
+    res.status(200).json({
+      success: true,
+      message: "order status changed successfully!",
+    });
+  } else {
+    res.status(404);
+    throw new Error("Order not found");
+  }
+});
+/////////////////////////////////////
 
 
+//////////////graph////////////////
+
+
+
+const graphData = asyncHandler(async (req, res) => {
+  try {
+
+    console.log("Graph");
+
+    const products = await Product.find().populate("categoryId");
+
+    const data = products.map((product) => {
+      return {
+        categoryId: product.categoryId,
+        sales: product.sales,
+      };
+    });
+
+    console.log(data);
+
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch graph data" });
+  }
+});
+
+//////////////////////////////////
 
 
   
@@ -465,6 +661,10 @@ module.exports = {
   addBanner,
   getBanner,
   bannerStatusControl,
+  getOrder,
+  orderStatusControl,
+  orderDeliver,
+  graphData,
 };
 
 

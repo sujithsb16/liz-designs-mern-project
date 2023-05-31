@@ -33,14 +33,14 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import { useNavigate } from "react-router-dom";
-
-
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
 
 const initialValues = {
   name: "",
   price: "",
   description: "",
-  qty:"",
+  qty: "",
 };
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
@@ -62,10 +62,6 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
     border: 0,
   },
 }));
-
-
-
-
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -101,9 +97,9 @@ function a11yProps(index) {
 }
 
 const AddProducts = () => {
+  const MySwal = withReactContent(Swal);
 
-    const navigate = useNavigate();
-
+  const navigate = useNavigate();
 
   const [images, setImages] = useState([]);
   const [category, setCategory] = useState("");
@@ -114,8 +110,8 @@ const AddProducts = () => {
   const [categoryList, setCategoryList] = useState([]);
   const [productList, setProductList] = useState([]);
 
-    const [blockSuccess, setBlockSuccess] = useState(false);
-    const [verifySuccess, setVerifySuccess] = useState(false);  
+  const [blockSuccess, setBlockSuccess] = useState(false);
+  const [verifySuccess, setVerifySuccess] = useState(false);
 
   const [error, setError] = useState(false);
 
@@ -124,16 +120,16 @@ const AddProducts = () => {
 
   ////////////////////////////////////
 
-
   const { values, errors, touched, handleBlur, handleChange, handleSubmit } =
     useFormik({
       initialValues: initialValues,
       validationSchema: productSchema,
-      onSubmit: (values) => {
+      onSubmit: (values, action) => {
         submitHandler();
         // moblieVerify();
 
         console.log(values);
+        action.resetForm();
       },
     });
 
@@ -165,7 +161,7 @@ const AddProducts = () => {
         name: values.name,
         price: values.price,
         description: values.description,
-        qty:values.qty,
+        qty: values.qty,
         category: category,
       };
 
@@ -181,6 +177,11 @@ const AddProducts = () => {
       if (result.data) {
         console.log("test 4 ");
         console.log(result.data);
+        MySwal.fire({
+          icon: "success",
+          title: "Product added",
+          time: 4000,
+        });
         setImages([]);
       } else {
         setError(true);
@@ -221,7 +222,6 @@ const AddProducts = () => {
     } catch (error) {}
   }, [token]);
 
-
   /////////////////////////////////////////
 
   const getProducts = useCallback(async () => {
@@ -243,7 +243,6 @@ const AddProducts = () => {
       setLoading(false);
     } catch (error) {}
   }, [token]);
-
 
   /////////////////////////////////////////
 
@@ -300,10 +299,9 @@ const AddProducts = () => {
     .filter(({ isBlocked }) => !isBlocked)
     .map(({ category }) => ({ label: category }));
 
-    useEffect(() => {
-       getProducts()
-      
-    }, [blockSuccess])
+  useEffect(() => {
+    getProducts();
+  }, [blockSuccess]);
 
   useEffect(() => {
     getCategory();
@@ -570,7 +568,7 @@ const AddProducts = () => {
                       upload images
                       <input
                         type="file"
-                        accept=".jpg"
+                        accept=".jpg,.JPEG "
                         hidden
                         multiple
                         onChange={handleUpload}

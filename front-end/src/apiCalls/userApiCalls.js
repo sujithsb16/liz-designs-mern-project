@@ -99,13 +99,41 @@ export const addAddressApi = async (token,address, setLoading) => {
   }
 };
 
+export const deleteAddressApi = async (token, index) => {
+  try {
+    console.log("user api " + token);
+
+    const config = {
+      headers: { Authorization: `Bearer ${token}` },
+    };
+    // console.log(productId);
+    const response = await axiosUserInstance.delete(
+      `/deleteaddress/${index}`,
+      config
+    );
+    console.log(response);
+    return response;
+  } catch (error) {
+    const errorIs =
+      error.response && error.response.data.message
+        ? error.response.data.message
+        : error.message;
+    // setLoading(false);
+    console.log("user apiCalls error - " + errorIs);
+    return errorIs;
+  }
+};
+
 //////////////////////////////////////////
-export const userProductList = async (setLoading) => {
+export const userProductList = async (setLoading, page, limit, vendorId) => {
   try {
     // const config = {
     //   headers: { Authorization: `Bearer ${token}` },
     // };
-    const response = await axiosUserInstance.get("/getproducts");
+    const response = await axiosUserInstance.get(
+      `/getproducts/${page}/${limit}`,
+      { vendorId }
+    );
     console.log(response);
     return response;
   } catch (error) {
@@ -464,4 +492,77 @@ export const buildOrder = async (
     return errorIs;
   }
 };
+
+export const cancelOrder = async (token, orderId, setLoading) => {
+  try {
+    console.log("user api " + token);
+
+    const response = await axiosUserInstance.patch(
+      `/cancelorder/${orderId}`,
+      null,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    console.log(response);
+    return response;
+  } catch (error) {
+    const errorIs =
+      error.response && error.response.data.message
+        ? error.response.data.message
+        : error.message;
+    // setLoading(false);
+    console.log("user apiCalls error - " + errorIs);
+    return errorIs;
+  }
+};
+export const paymentApi = async ( totalPrice,
+        paymentToken,
+        userToken,) => {
+  try {
+    const amount = totalPrice * 100;
+    console.log("user api " + userToken);
+    const config = {
+      headers: { Authorization: `Bearer ${userToken}` },
+    };
+
+    const response = await axiosUserInstance.post(
+      `/payment/`,
+      { amount, paymentToken, userToken },
+      config
+    );
+    console.log(response);
+    return response;
+  } catch (error) {
+    const errorIs =
+      error.response && error.response.data.message
+        ? error.response.data.message
+        : error.message;
+    // setLoading(false);
+    console.log("user apiCalls error - " + errorIs);
+    return errorIs;
+  }
+};
+
+export const getOrderDetails = async (orderId, token) => {
+  try {
+    const config = {
+      headers: { Authorization: `Bearer ${token}` },
+    };
+    const response = await axiosUserInstance.get(`/getorderdetials/${orderId}`, config);
+    console.log(response);
+    return response;
+  } catch (error) {
+    const errorIs =
+      error.response && error.response.data.message
+        ? error.response.data.message
+        : error.message;
+    console.log("admin apiCalls error - " + errorIs);
+    return errorIs;
+  }
+};
+
+
 /////////////////////order end////////////////////////
+
+

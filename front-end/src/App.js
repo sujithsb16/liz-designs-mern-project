@@ -12,6 +12,8 @@ import AdminRoutes from './routes/adminRoutes/AdminRoutes';
 import VendorRoutes from './routes/vendorRoutes/VendorRoutes';
 
 
+
+
 function App() {
 
   
@@ -28,7 +30,9 @@ function App() {
         }}
       >
         <ThemeProvider theme={theme}>
-          <UserRoutes />
+            <UserRoutes />
+         
+
           <AdminRoutes />
           <VendorRoutes />
         </ThemeProvider>

@@ -160,3 +160,53 @@ export const productStatusControl = async (id, status, token, setLoading) => {
 
 /////////////////////////////////////
 
+///////////////order start//////////
+export const vendorOrderList = async (token, setLoading) => {
+  try {
+    const config = {
+      headers: { Authorization: `Bearer ${token}` },
+    };
+    const response = await axiosVendorInstance.get("/getorders", config);
+    console.log(response);
+    return response;
+  } catch (error) {
+    const errorIs =
+      error.response && error.response.data.message
+        ? error.response.data.message
+        : error.message;
+    setLoading(false);
+    console.log("vendor apiCalls error - " + errorIs);
+    return errorIs;
+  }
+};
+
+export const orderStatusControl = async (id, token, setLoading) => {
+  try {
+    console.log("token" + token);
+    const config = {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    const response = await axiosVendorInstance.patch(
+      `/orderstatus/${id}`,
+      { token },
+      config
+    );
+
+   
+    return response;
+  } catch (error) {
+    const errorIs =
+      error.response && error.response.data.message
+        ? error.response.data.message
+        : error.message;
+    setLoading(false);
+    console.log("vendor apiCalls error - " + errorIs);
+    return errorIs;
+  }
+};
+///////////////order end////////////
+

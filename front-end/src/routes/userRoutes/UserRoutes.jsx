@@ -10,6 +10,14 @@ import CartPage from '../../pages/userPages/CartPage';
 import CheckoutPage from '../../pages/userPages/CheckoutPage';
 import UserProfilePage from '../../pages/userPages/UserProfilePage';
 import WishListPage from '../../pages/userPages/WishListPage';
+import { Elements } from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
+import OrderDeatailPage from '../../pages/userPages/OrderDeatailPage';
+
+const promise = loadStripe(
+  "pk_test_51NASgsSGT6N9oHP6aAsP7qM93IuLv5mvfhaz3sE7NCcTu5NyXq10sNG0GXYV1GPurwySKfmklxkqYLtbOEkD0AlZ00BggfOYbv"
+);
+
 const UserRoutes = () => {
 
    const ProtectedRoute = ({ children }) => {
@@ -29,14 +37,22 @@ const UserRoutes = () => {
   return (
     <Fragment>
       <BrowserRouter>
-        <Routes>  
+        <Routes>
           <Route path="/" element={<UserHome />} />
+          <Route path="/shop/:vendorId" element={<UserShop />} />
           <Route path="/shop" element={<UserShop />} />
           <Route path="/usersignin" element={<UserSign />} />
           <Route path="/usersignup" element={<UserRegister />} />
           <Route path="/singleproduct/:id" element={<SingleProduct />} />
           <Route path="/cart" element={<CartPage />} />
-          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route
+            path="/checkout"
+            element={
+              <Elements stripe={promise}>
+                <CheckoutPage />{" "}
+              </Elements>
+            }
+          />
           {/* <Route path='/profile' element={<UserProfilePage/>}/> */}
           <Route path="/wishlist" element={<WishListPage />} />
 
@@ -45,6 +61,14 @@ const UserRoutes = () => {
             element={
               <ProtectedRoute>
                 <UserProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/orderdetails/:orderId"
+            element={
+              <ProtectedRoute>
+                <OrderDeatailPage />
               </ProtectedRoute>
             }
           />

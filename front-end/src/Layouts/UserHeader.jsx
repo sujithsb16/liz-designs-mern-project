@@ -19,14 +19,18 @@ import { styled, alpha } from "@mui/material/styles";
 import InputBase from "@mui/material/InputBase";
 import { useDispatch, useSelector } from "react-redux";
 import { setUserLogout } from "../Redux/userSlice";
+import toast, { Toaster } from "react-hot-toast";
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
 
 
-const links = ["/", "/shop","/profile"];
+const links = [ "/shop","/profile"];
 
-const pages = ["Home", "Shop","Profile"];
+const pages = [ "Shop","Profile"];
 const settings = ["Profile", "Logout"];
 
 function Header() {
+const MySwal = withReactContent(Swal);
 
   
   const navigate = useNavigate();
@@ -41,7 +45,24 @@ function Header() {
     }else{
       userInfo = null;
     }
- 
+ const handleShoppingCartClick = () => {
+ MySwal.fire({
+   icon: "warning",
+   title: "Please Login",
+   time: 4000,
+ }).then(() => {
+   loginHandler();
+ });  
+ };
+ const handleWishlistClick = () => {
+   MySwal.fire({
+     icon: "warning",
+     title: "Please Login",
+     time: 4000,
+   }).then(() => {
+     loginHandler();
+   });
+ };
 
 
 const logoutHandler = () => {
@@ -118,216 +139,223 @@ const loginHandler = () => {
   }));
 
   return (
-    <AppBar
-      position="static"
-      sx={{
-        height: "100px",
-        bgcolor: "primary.main",
-        display: "flex",
-        alignItems: "center", // Align items vertically center
-        justifyContent: "center",
-      }}
-    >
-      <Container maxWidth="xl" sx={{ bgcolor: "primary.main" }}>
-        <Toolbar disableGutters sx={{ display: "flex", alignItems: "center" }}>
-          <Typography
-            variant="h6"
-            noWrap
-            component="a"
-            href="/"
-            sx={{
-              mr: 2,
-              display: { xs: "none", md: "flex" },
-              fontFamily: "Inria Serif",
-              fontWeight: 700,
-              letterSpacing: ".3rem",
-              color: "inherit",
-              textDecoration: "none",
-            }}
+    <>
+      <AppBar
+        position="static"
+        sx={{
+          height: "100px",
+          bgcolor: "primary.main",
+          display: "flex",
+          alignItems: "center", // Align items vertically center
+          justifyContent: "center",
+        }}
+      >
+        <Container maxWidth="xl" sx={{ bgcolor: "primary.main" }}>
+          <Toolbar
+            disableGutters
+            sx={{ display: "flex", alignItems: "center" }}
           >
-            Liz Designs
-          </Typography>
-
-          <Box sx={{ flexGrow: 1, display: { xs: "flex", md: "none" } }}>
-            <IconButton
-              size="large"
-              aria-label="account of current user"
-              aria-controls="menu-appbar"
-              aria-haspopup="true"
-              onClick={handleOpenNavMenu}
-              color="inherit"
-            >
-              <MenuIcon />
-            </IconButton>
-            <Menu
-              id="menu-appbar"
-              anchorEl={anchorElNav}
-              anchorOrigin={{
-                vertical: "bottom",
-                horizontal: "left",
-              }}
-              keepMounted
-              transformOrigin={{
-                vertical: "top",
-                horizontal: "left",
-              }}
-              open={Boolean(anchorElNav)}
-              onClose={handleCloseNavMenu}
+            <Typography
+              variant="h6"
+              noWrap
+              component="a"
+              onClick={() => navigate("/")}
               sx={{
-                display: { xs: "block", md: "none" },
+                mr: 2,
+                display: { xs: "none", md: "flex" },
+                fontFamily: "Inria Serif",
+                fontWeight: 700,
+                letterSpacing: ".3rem",
+                color: "inherit",
+                textDecoration: "none",
               }}
             >
-              {pages.map((page) => {
+              Liz Designs
+            </Typography>
+
+            <Box sx={{ flexGrow: 1, display: { xs: "flex", md: "none" } }}>
+              <IconButton
+                size="large"
+                aria-label="account of current user"
+                aria-controls="menu-appbar"
+                aria-haspopup="true"
+                onClick={handleOpenNavMenu}
+                color="inherit"
+              >
+                <MenuIcon />
+              </IconButton>
+              <Menu
+                id="menu-appbar"
+                anchorEl={anchorElNav}
+                anchorOrigin={{
+                  vertical: "bottom",
+                  horizontal: "left",
+                }}
+                keepMounted
+                transformOrigin={{
+                  vertical: "top",
+                  horizontal: "left",
+                }}
+                open={Boolean(anchorElNav)}
+                onClose={handleCloseNavMenu}
+                sx={{
+                  display: { xs: "block", md: "none" },
+                }}
+              >
+                {pages.map((page, index) => {
+                  // Check if the current page is "Profile" and userInfo is null
+                  if (page === "Profile" && !userInfo) {
+                    return null; // Return nothing to hide the link
+                  }
+                  // Otherwise, render the link as usual
+                  return (
+                    <MenuItem key={page} onClick={handleCloseNavMenu}>
+                      <Link
+                        key={index}
+                        to={`${links[index]}`}
+                        style={{ textDecoration: "none", color: "black" }}
+                      >
+                        <Typography textAlign="center" fontFamily="Inria Serif">
+                          {page}
+                        </Typography>
+                      </Link>
+                    </MenuItem>
+                  );
+                })}
+              </Menu>
+            </Box>
+            {/* <AdbIcon sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }} /> */}
+            <Typography
+              variant="h5"
+              noWrap
+              component="a"
+              onClick={() => navigate("/")}
+              sx={{
+                mr: 2,
+                display: { xs: "flex", md: "none" },
+                flexGrow: 1,
+                fontFamily: "Inria Serif",
+                fontWeight: 700,
+                letterSpacing: ".3rem",
+                color: "inherit",
+                textDecoration: "none",
+                "@media (max-width: 600px)": {
+                  fontWeight: 200,
+                  letterSpacing: ".2rem",
+                },
+              }}
+            >
+              Liz Designs
+            </Typography>
+            <Box
+              sx={{
+                flexGrow: 1,
+                display: { xs: "none", md: "flex" },
+                textDecoration: "none",
+              }}
+            >
+              {pages.map((page, index) => {
+                // Check if the current page is "Profile" and userInfo is null
                 if (page === "Profile" && !userInfo) {
                   return null; // Return nothing to hide the link
                 }
+                // Otherwise, render the link as usual
                 return (
                   <MenuItem key={page} onClick={handleCloseNavMenu}>
-                    <Typography textAlign="center" fontFamily="Inria Serif">
-                      {page}
-                    </Typography>
+                    <Link
+                      key={index}
+                      to={`${links[index]}`}
+                      style={{ textDecoration: "none", color: "white" }}
+                    >
+                      <Typography textAlign="center" fontFamily="Inria Serif">
+                        {page}
+                      </Typography>
+                    </Link>
                   </MenuItem>
                 );
               })}
-            </Menu>
-          </Box>
-          {/* <AdbIcon sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }} /> */}
-          <Typography
-            variant="h5"
-            noWrap
-            component="a"
-            href=""
-            sx={{
-              mr: 2,
-              display: { xs: "flex", md: "none" },
-              flexGrow: 1,
-              fontFamily: "Inria Serif",
-              fontWeight: 700,
-              letterSpacing: ".3rem",
-              color: "inherit",
-              textDecoration: "none",
-              "@media (max-width: 600px)": {
-                fontWeight: 200,
-                letterSpacing: ".2rem",
-              },
-            }}
-          >
-            Liz Designs
-          </Typography>
-          <Box
-            sx={{
-              flexGrow: 1,
-              display: { xs: "none", md: "flex" },
-              textDecoration: "none",
-            }}
-          >
-            {pages.map((page, index) => {
-              // Check if the current page is "Profile" and userInfo is null
-              if (page === "Profile" && !userInfo) {
-                return null; // Return nothing to hide the link
-              }
-              // Otherwise, render the link as usual
-              return (
-                <MenuItem key={page} onClick={handleCloseNavMenu}>
-                  <Link
-                    key={index}
-                    to={`${links[index]}`}
-                    style={{ textDecoration: "none", color: "white" }}
-                  >
-                    <Typography textAlign="center" fontFamily="Inria Serif">
-                      {page}
-                    </Typography>
-                  </Link>
-                </MenuItem>
-              );
-            })}
-          </Box>
+            </Box>
 
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 4,
-              "@media (max-width: 600px)": {
-                marginRight: 1,
-                gap: 2,
-              },
-            }}
-          >
-            {userInfo ? (
-              <FavoriteIcon onClick={() => navigate("/wishlist")} />
-            ) : (
-              <FavoriteIcon onClick={loginHandler} />
-            )}
-            {userInfo ? (
-              <ShoppingCartIcon onClick={() => navigate("/cart")} />
-            ) : (
-              <ShoppingCartIcon onClick={loginHandler} />
-            )}
-
-            <Tooltip title="Open settings">
-              <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                {userInfo ? (
-                  <Typography
-                    textAlign="center"
-                    sx={{ fontFamily: "Inria Serif", fontSize:18 }}
-                    color="white"
-                  >
-                    {userInfo.name}
-                  </Typography>
-                ) : (
-                  <Avatar alt="" src="" />
-                )}
-              </IconButton>
-            </Tooltip>
-            <Menu
-              sx={{ mt: "3.5vh", ml: "3vw" }}
-              id="menu-appbar"
-              anchorEl={anchorElUser}
-              anchorOrigin={{
-                vertical: "top",
-                horizontal: "right",
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 4,
+                "@media (max-width: 600px)": {
+                  marginRight: 1,
+                  gap: 2,
+                },
               }}
-              keepMounted
-              transformOrigin={{
-                vertical: "top",
-                horizontal: "right",
-              }}
-              open={Boolean(anchorElUser)}
-              onClose={handleCloseUserMenu}
             >
-              <MenuItem onClick={handleCloseUserMenu}>
-                <Typography textAlign="center">Home</Typography>
-              </MenuItem>
-              <MenuItem onClick={handleCloseUserMenu}>
-                <Typography textAlign="center">Profile</Typography>
-              </MenuItem>
-              <MenuItem onClick={handleCloseUserMenu}>
-                {userInfo ? (
-                  <Typography
-                    textAlign="center"
-                    onClick={() => {
-                      logoutHandler();
-                    }}
-                  >
-                    Logout
-                  </Typography>
-                ) : (
-                  <Typography
-                    textAlign="center"
-                    onClick={() => {
-                      loginHandler();
-                    }}
-                  >
-                    Login
-                  </Typography>
-                )}
-              </MenuItem>
-            </Menu>
-          </Box>
-        </Toolbar>
-      </Container>
-    </AppBar>
+              {userInfo ? (
+                <FavoriteIcon onClick={() => navigate("/wishlist")} />
+              ) : (
+                <FavoriteIcon onClick={handleWishlistClick} />
+              )}
+              {userInfo ? (
+                <ShoppingCartIcon onClick={() => navigate("/cart")} />
+              ) : (
+                <ShoppingCartIcon onClick={handleShoppingCartClick} />
+              )}
+
+              <Tooltip title="Open settings">
+                <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+                  {userInfo ? (
+                    <Typography
+                      textAlign="center"
+                      sx={{ fontFamily: "Inria Serif", fontSize: 18 }}
+                      color="white"
+                    >
+                      {userInfo.name}
+                    </Typography>
+                  ) : (
+                    <Avatar alt="" src="" />
+                  )}
+                </IconButton>
+              </Tooltip>
+              <Menu
+                sx={{ mt: "3.5vh", ml: "3vw" }}
+                id="menu-appbar"
+                anchorEl={anchorElUser}
+                anchorOrigin={{
+                  vertical: "top",
+                  horizontal: "right",
+                }}
+                keepMounted
+                transformOrigin={{
+                  vertical: "top",
+                  horizontal: "right",
+                }}
+                open={Boolean(anchorElUser)}
+                onClose={handleCloseUserMenu}
+              >
+                <MenuItem onClick={handleCloseUserMenu}>
+                  {userInfo ? (
+                    <Typography
+                      textAlign="center"
+                      onClick={() => {
+                        logoutHandler();
+                      }}
+                    >
+                      Logout
+                    </Typography>
+                  ) : (
+                    <Typography
+                      textAlign="center"
+                      onClick={() => {
+                        loginHandler();
+                      }}
+                    >
+                      Login
+                    </Typography>
+                  )}
+                </MenuItem>
+              </Menu>
+            </Box>
+          </Toolbar>
+        </Container>
+      </AppBar>
+    </>
   );
 }
 export default Header;

@@ -120,7 +120,7 @@ const SignIn = () => {
             alignItems: "center",
             justifyContent: "center",
             maxWidth: "100%",
-            
+            minWidth: "30vw",
           }}
         >
           <Box
@@ -206,11 +206,7 @@ const SignIn = () => {
               justifyContent="center"
               sx={{ mt: "1rem" }}
             >
-              <Grid item xs={12} sm={6}>
-                <Link to="#" variant="body2">
-                  Forgot password?
-                </Link>
-              </Grid>
+              <Grid item xs={12} sm={6}></Grid>
               <Grid
                 item
                 xs={12}

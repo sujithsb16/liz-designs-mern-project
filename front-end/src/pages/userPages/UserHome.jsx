@@ -3,7 +3,6 @@ import Banner from "../../Components/UserComponents/Banner";
 import Cards from "../../Components/UserComponents/Cards";
 import Header from "../../Layouts/UserHeader";
 import Footer from "../../Layouts/UserFooter";
-import NewArrivals from "../../Components/UserComponents/NewArrivals";
 import { userProductList } from "../../apiCalls/userApiCalls";
 
 function UserHome() {
@@ -11,24 +10,27 @@ function UserHome() {
   const [products, setProducts] = useState([]);
   const [error, setError] = useState(false);
 
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(4);
+
   const homeCards = {
     position: "relative",
-    margin: "10px",
     borderRadius: 5,
     bgcolor: "warning.main",
     height: "18rem",
     width: "15rem",
-    marginLeft: "2.5rem",
   };
+
+  let vendorId = null
 
   const getProduct = useCallback(async () => {
     try {
       setLoading(true);
-      const result = await userProductList(setLoading);
+      const result = await userProductList(setLoading, page, limit, vendorId);
       if (result.data) {
         console.log("test 4 ");
         console.log(result.data);
-        setProducts(result.data.slice(0, 4)); // set only first 4 elements
+        setProducts(result.data.result.slice(0, 4)); // set only first 4 elements
       } else {
         setError(true);
         setTimeout(() => {

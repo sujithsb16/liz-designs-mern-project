@@ -12,6 +12,9 @@ import { Box, Button, Divider, Grid, Paper, Rating, Typography, styled } from '@
 import Loading from '../Loading';
 import { useSelector } from 'react-redux';
 import ZoomImageOnHover from './ZoomImageOnHover';
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
+
 
 
 // import { Rating } from "@material-ui/lab";
@@ -71,7 +74,7 @@ const ZoomContainer = styled(Box)({
 
 const SmallImage = styled("img")({
   width: "100%",
-  maxHeight: 100,
+  maxHeight: 170,
   objectFit: "cover",
   cursor: "pointer",
   "@media (max-width: 600px)": {
@@ -84,16 +87,24 @@ const SmallImage = styled("img")({
 
 
 const SingleComponent = (props) => {
+
+  const MySwal = withReactContent(Swal);
+
     const navigate = useNavigate();
 
 
     const user = useSelector((state) => state.userLogin);
     const token = user?.userInfo?.token;
 
+
+    
+
+
 let { id } = useParams();
 console.log(id);
 
 const [product, setProduct] = useState([]);
+const [goToCart, setGoTOCart] = useState(false)
 
 const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -126,11 +137,17 @@ const [error, setError] = useState(false);
       } catch (error) {}
     }, [id, setLoading]);
 
-    
-console.log(product.image?.[0]?.url);
+    const handleShoppingCartClick = () => {
+ MySwal.fire({
+   icon: "warning",
+   title: "Please Login",
+   time: 4000,
+ }).then(() => {
+   navigate("/usersignin");
+ });  
+ };
 
 
-    const { post } = props;
 
 
     const handleAddToCart = async (productId) => {
@@ -145,7 +162,9 @@ console.log(product.image?.[0]?.url);
         if (result.data) {
           console.log("test 4 ");
           console.log(result.data);
+          setGoTOCart(true)
           toast.success("Added To Cart");
+
            setLoading(false);
 
 
@@ -193,7 +212,7 @@ console.log(product.image?.[0]?.url);
 
   return (
     <>
-      <Toaster toasterOptions={{ duratiom: 4000 }} />
+      <Toaster />{" "}
       <Wrapper>
         <StyledPaper sx={{ boxShadow: 10 }}>
           <Grid container spacing={3}>
@@ -204,8 +223,6 @@ console.log(product.image?.[0]?.url);
               /> */}
               <ZoomContainer>
                 <ZoomImageOnHover
-
-
                   src={selectedImage || (product.image?.[0]?.url ?? "")}
                 />
               </ZoomContainer>
@@ -224,31 +241,71 @@ console.log(product.image?.[0]?.url);
               </Grid>
             </Grid>
             <Grid item xs={12} md={6}>
-              <Typography variant="h4" gutterBottom>
+              <Typography
+                variant="h4"
+                gutterBottom
+                sx={{ fontFamily: "Inria Serif" }}
+              >
                 {product.name}
               </Typography>
               <Box sx={{ mb: 2 }}>
                 <Rating value={product.rating} readOnly />
               </Box>
-              <Typography variant="body1" gutterBottom>
+              <Typography
+                variant="body1"
+                gutterBottom
+                sx={{ fontFamily: "Inria Serif" }}
+              >
                 {product.description}
               </Typography>
               <Divider sx={{ my: 2 }} />
-              <Typography variant="h6" gutterBottom>
+              <Typography
+                variant="h6"
+                gutterBottom
+                sx={{ fontFamily: "Inria Serif" }}
+              >
                 Price: ₹ {product.price}
               </Typography>
 
-              <Button
-                disabled={loading ? true : false}
-                variant="contained"
-                sx={{ my: 3 }}
-                onClick={() => {
-                  handleAddToCart(product._id);
-                }}
-                color="primary"
-              >
-                Add to Cart
-              </Button>
+              {token ? (
+                <Button
+                  disabled={loading ? true : false}
+                  variant="contained"
+                  sx={{
+                    my: 3,
+                    width: { xs: "auto", sm: "auto", lg: "10vw" },
+                    borderRadius: 5,
+                    fontFamily: "Inria Serif",
+                  }}
+                  onClick={
+                    goToCart
+                      ? () => {
+                          navigate("/cart");
+                        }
+                      : () => {
+                          handleAddToCart(product._id);
+                        }
+                  }
+                  color="primary"
+                >
+                  {goToCart ? "Go To Cart" : "Add to Cart"}
+                </Button>
+              ) : (
+                <Button
+                  disabled={loading ? true : false}
+                  variant="contained"
+                  sx={{
+                    my: 3,
+                    width: { xs: "auto", sm: "auto", lg: "10vw" },
+                    borderRadius: 5,
+                    fontFamily: "Inria Serif",
+                  }}
+                  onClick={handleShoppingCartClick}
+                  color="primary"
+                >
+                  {"Add to Cart"}
+                </Button>
+              )}
 
               <Box
                 sx={{
@@ -296,6 +353,7 @@ console.log(product.image?.[0]?.url);
                       variant="contained"
                       color="secondary"
                       sx={{ fontSize: ".6rem", padding: "4px 6px" }}
+                      onClick={() => navigate(`/shop/${product?.vendor?._id}`)}
                     >
                       View Tailor
                     </Button>
@@ -316,7 +374,8 @@ console.log(product.image?.[0]?.url);
           <Button
             // disabled={loading? true: false}
             variant="contained"
-            sx={{ my: 3 }}
+            disabled={!token ? true : false}
+            sx={{ my: 3, borderRadius: 5, fontFamily: "Inria Serif" }}
             onClick={() => {
               navigate("/checkout");
             }}

@@ -28,7 +28,7 @@ const ZoomImageOnHover = ({ src, alt }) => {
           height: "auto",
           transition: "transform 0.3s",
           transform: isHovered ? "scale(1.2)" : "scale(1)",
-          maxHeight:540,
+          maxHeight:520,
         }}
       />
     </div>

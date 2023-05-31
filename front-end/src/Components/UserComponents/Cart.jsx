@@ -22,6 +22,7 @@ import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
 import { addToCart, deleteCart, updateToCart } from '../../apiCalls/userApiCalls';
 import { useSelector } from 'react-redux';
 import toast, { Toaster } from "react-hot-toast";
+import { useNavigate } from 'react-router-dom';
 
 
 
@@ -124,7 +125,15 @@ const CartItem = ({
         height="100"
         image={imageUrl}
         alt={item.name}
-        sx={{ marginRight: "10px", maxWidth: "18vw", minHeight: "30vh" }}
+        sx={{ marginRight: "10px",  maxWidth: "8vw",
+          minHeight: "35vh",
+          // width: "100%",
+          maxHeight: 170,
+          objectFit: "cover",
+          cursor: "pointer",
+          "@media (max-width: 600px)": {
+            width: "70%",
+            marginY: 2,} }}
       />
       <Box sx={{ flexGrow: 1 }}>
         <CardContent sx={{ display: "flex", flexDirection: "column" }}>
@@ -218,7 +227,12 @@ const Cart = ({
   console.log(cartItems?.cart);
 
   const EmptyCartContent = (
-    <Typography variant="subtitle1">Your cart is empty</Typography>
+    <Typography
+      variant="subtitle1"
+      sx={{  fontFamily: "Inria Serif" }}
+    >
+      Your cart is empt
+    </Typography>
   );
 
   const CartItemsContent = cartItems?.cart?.items ? (
@@ -237,7 +251,11 @@ const Cart = ({
             />
           ))
         ) : (
-          <Typography variant="subtitle1" gutterBottom>
+          <Typography
+            variant="subtitle1"
+            gutterBottom
+            sx={{ fontFamily: "Inria Serif" }}
+          >
             Your cart is empty.
           </Typography>
         )}
@@ -259,10 +277,13 @@ const Cart = ({
   ) : (
     EmptyCartContent
   );
+   const navigate = useNavigate();
+   
+
 
   return (
     <Wrapper>
-      <Toaster toasterOptions={{ duratiom: 4000 }} />
+      <Toaster />
 
       <StyledPaper>
         <Typography
@@ -275,10 +296,20 @@ const Cart = ({
         </Typography>
         {CartItemsContent}
         <Box m={2} display="flex" justifyContent="space-between">
-          <Button variant="outlined" href="/">
+          <Button
+            variant="outlined"
+            onClick={() => navigate("/shop")}
+            sx={{ borderRadius: 5, fontFamily: "Inria Serif" }}
+          >
             Continue Shopping
           </Button>
-          <Button variant="contained" color="primary" href="/checkout">
+          <Button
+            variant="contained"
+            disabled={cartItems?.cart?.items.length === 0 ? true : false}
+            color="primary"
+            sx={{ borderRadius: 5, fontFamily: "Inria Serif" }}
+            onClick={() => navigate("/checkout")}
+          >
             Checkout
           </Button>
         </Box>

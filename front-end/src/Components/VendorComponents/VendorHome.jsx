@@ -45,10 +45,10 @@ const VenderHome = (props) => {
 
      const test = props.props
      const cardNames = [
-       { name: "Dashboard", },
-       { name: "Add Products", },
-       { name: "Dress 3", image: product1 },
-       { name: "Dress 4", image: product1 },
+       { name: "Dashboard", url: "dashboard" },
+       { name: "Add Products", url: "addproducts" },
+       { name: "Orders", url: "orders" },
+       //  { name: "Dress 4", image: product1 },
      ];
 
      useEffect(() => {
@@ -83,10 +83,10 @@ const VenderHome = (props) => {
             color: "primary.main",
           }}
         >
-          Welcome Tailor name
+          {`Welcome Tailor ${vendorInfo.name}`}
         </Typography>
 
-        <Grid container >
+        <Grid container>
           {cardNames.map((value, index) => {
             return (
               <Grid
@@ -103,7 +103,7 @@ const VenderHome = (props) => {
                     maxWidth: 275,
                     borderRadius: 10,
                     minHeight: 275,
-                    boxShadow:15,
+                    boxShadow: 15,
                   }}
                 >
                   <Box
@@ -118,16 +118,15 @@ const VenderHome = (props) => {
                     <CardContent sx={{ textAlign: "center" }}>
                       <Button
                         onClick={() => {
-                          navigate("/vendor/addproducts");
+                          navigate(`/vendor/${value.url}`);
                         }}
                         sx={{
                           position: "relative",
                           top: "15vh",
-                          backgroundColor:"alertInfo.main"
+                          backgroundColor: "alertInfo.main",
                         }}
                       >
                         {value.name}
-                       
                       </Button>
                     </CardContent>
                   </Box>

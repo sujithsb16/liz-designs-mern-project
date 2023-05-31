@@ -6,6 +6,7 @@ import VendorSignupPage from '../../pages/VendorPages/VendorSignupPage';
 import VendorRequestPendingPage from '../../pages/VendorPages/VendorRequestPendingPage';
 import VendorHomePage from '../../pages/VendorPages/VendorHomePage';
 import VendorAddProductsPage from '../../pages/VendorPages/VendorAddProductsPage';
+import VendorOrderPage from '../../pages/VendorPages/VendorOrderPage';
 const VendorRoutes = () => {
 
     
@@ -28,6 +29,10 @@ const VendorRoutes = () => {
           <Route
             path="/vendor/addproducts"
             element={<VendorAddProductsPage />}
+          />
+          <Route
+            path="/vendor/orders"
+            element={<VendorOrderPage />}
           />
         </Routes>
       </BrowserRouter>

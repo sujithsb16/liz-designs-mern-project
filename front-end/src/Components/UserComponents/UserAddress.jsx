@@ -1,8 +1,15 @@
 import React from 'react'
-import { Card, CardContent, Typography } from "@mui/material";
+import { Button, Card, CardContent, Typography } from "@mui/material";
+import { useSelector } from 'react-redux';
+import { deleteAddressApi } from '../../apiCalls/userApiCalls';
 
 
-const UserAddress = ({ address }) => {
+const UserAddress = ({
+  address,
+  index,
+  setAddAddressSuccess,
+  addAddressSuccess,
+}) => {
   const styles = {
     card: {
       minWidth: 275,
@@ -18,6 +25,32 @@ const UserAddress = ({ address }) => {
       fontWeight: "bold",
     },
   };
+
+  const token = useSelector((state) => state.userLogin.userInfo.token);
+
+  const deleteAddress = async (index) => {
+    try {
+      console.log("10");
+      console.log(index);
+      const result = await deleteAddressApi(token, index);
+
+      // console.log("blocksucess2");
+
+      if (result.data) {
+        console.log("test 4 ");
+        console.log(result.data);
+        setAddAddressSuccess(!addAddressSuccess);
+        //  setWishlistItems(
+        //    wishlistItems.filter((item) => item.productId._id !== productId)
+        //  );
+      } else {
+      }
+    } catch (error) {
+      // setLoading(false);
+      console.log(error.message);
+    }
+  };
+
   return (
     <>
       <Card sx={styles.card}>
@@ -53,8 +86,15 @@ const UserAddress = ({ address }) => {
           >
             Zip Code : {address.zipCode}
           </Typography>
-          
         </CardContent>
+        <Button
+          variant="contained"
+          color="primary"
+          sx={{ fontFamily: "Roboto", fontSize: 16 }}
+          onClick={() => deleteAddress(index)}
+        >
+          Delete
+        </Button>
       </Card>
     </>
   );
