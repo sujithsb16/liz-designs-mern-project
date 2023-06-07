@@ -548,6 +548,41 @@ const orderStatusControl = asyncHandler(async (req, res) => {
  
  
 });
+const orderReturnConfirm = asyncHandler(async (req, res) => {
+  try {
+    console.log("server test block product");
+
+    const orderId = req.params.id;
+
+    const order = await Order.findById(orderId);
+
+      order.status = "Returned";
+      await order.save();
+
+    const productDetails = await Product.find();
+    for (let i = 0; i < productDetails.length; i++) {
+      for (let j = 0; j < order.products.items.length; j++) {
+        if (
+          productDetails[i]._id.equals(
+            order.products.items[j].productId && productDetails[i].sales!=0
+          )
+        ) {
+          productDetails[i].sales -= order.products.items[j].qty;
+          productDetails[i].qty += order.products.items[j].qty;
+          await productDetails[i].save();
+        }
+      }
+    }
+    res.status(200).json({ message: "Order returned successfully" });
+
+    
+  } catch (error) {
+    res.status(500).json({
+      success: true,
+      message: error.message,
+    });
+  }
+});
 const orderDeliver = asyncHandler(async (req, res) => {
   console.log("server test block product");
   const { id } = req.params;
@@ -586,25 +621,108 @@ const orderDeliver = asyncHandler(async (req, res) => {
 
 const graphData = asyncHandler(async (req, res) => {
   try {
-
     console.log("Graph");
 
-    const products = await Product.find().populate("categoryId");
+    const orderData = await Order.aggregate([
+      {
+        $group: {
+          _id: {
+            $dateToString: { format: "%Y-%m-%d", date: "$createdAt" },
+          },
+          orderCount: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { _id: 1 },
+      },
+    ]);
 
-    const data = products.map((product) => {
-      return {
-        categoryId: product.categoryId,
-        sales: product.sales,
-      };
-    });
+    console.log(orderData);
+
+
+    const totalMoneyDelivered = await Order.aggregate([
+      {
+        $match: { status: "Delivered" },
+      },
+      {
+        $group: {
+          _id: null,
+          totalMoney: { $sum: "$products.totalPrice" },
+        },
+      },
+    ]);
+
+    console.log(totalMoneyDelivered);
+
+    const totalMoneyNotDelivered = await Order.aggregate([
+      {
+        $match: { status: { $ne: "Delivered" } },
+      },
+      {
+        $group: {
+          _id: null,
+          totalMoney: { $sum: "$products.totalPrice" },
+        },
+      },
+    ]);
+
+    console.log(totalMoneyNotDelivered);
+
+    const data = await Product.aggregate([
+      {
+        $lookup: {
+          from: "categories", // Assuming the collection name for categories is "categories"
+          localField: "categoryId",
+          foreignField: "_id",
+          as: "category",
+        },
+      },
+      {
+        $unwind: "$category",
+      },
+      {
+        $group: {
+          _id: "$category.category",
+          sales: { $sum: "$sales" },
+        },
+      },
+      {
+        $project: {
+          category: "$_id",
+          sales: 1,
+          _id: 0,
+        },
+      },
+    ]);
+
+    // console.log(data);
+
+    let delivered
+    let unDelivered
+
+    if (totalMoneyDelivered.length > 0) {
+     const { totalMoney } = totalMoneyDelivered[0];
+     delivered = totalMoney
+      console.log("Total money of delivered orders:", totalMoney);
+    } else {
+      console.log("No delivered orders found");
+    }
+
+    if (totalMoneyNotDelivered.length > 0) {
+     const { totalMoney } = totalMoneyNotDelivered[0];
+      unDelivered = totalMoney
+      console.log("Total money of not delivered orders:", totalMoney);
+    } else {
+      console.log("No not delivered orders found");
+    }
 
     console.log(data);
-
-    res.json(data);
+    res.json({ data, delivered, unDelivered, orderData });
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch graph data" });
   }
 });
+
 
 //////////////////////////////////
 
@@ -665,6 +783,7 @@ module.exports = {
   orderStatusControl,
   orderDeliver,
   graphData,
+  orderReturnConfirm,
 };
 
 

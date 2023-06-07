@@ -7,6 +7,7 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import { Box, InputAdornment, Typography, styled } from "@mui/material";
 import {
+  ConfirmReturnOrder,
   adminOrderList,
   orderDeliverApi,
   orderStatusControl,
@@ -91,12 +92,12 @@ const AdminOrders = () => {
         },
         {
           label: "No",
-          onClick: () => navigate("/admin/coupon"),
+          onClick: () => navigate("/admin/orders"),
         },
       ],
     });
   };
-  const handleOrderDeliver = (id) => {
+  const handleReturn = (id) => {
     confirmAlert({
       title: "Confirm",
       message: `Are you sure ?`,
@@ -104,17 +105,44 @@ const AdminOrders = () => {
         {
           label: "Yes",
           onClick: () => {
-            orderDeliver(id);
+            handleConfirmReturn(id);
             // navigate("/admin");
           },
         },
         {
           label: "No",
-          onClick: () => navigate("/admin/coupon"),
+          onClick: () => navigate("/admin/orders"),
         },
       ],
     });
   };
+
+  const handleConfirmReturn = async (id) => {
+    try {
+    
+      setLoading(true);
+      const result = await ConfirmReturnOrder(token, id, setLoading);
+      if (result.data) {
+        console.log("test 4 ");
+        console.log(result.data);
+        setOrderSuccess(!orderSuccess);
+        toast.error("order return successful", { icon: "" });
+        // setCoupons(result.data); // set only first 4 elements
+      } else {
+        setError(true);
+        setTimeout(() => {
+          setError(false);
+        }, 4000);
+        setLoading(false);
+        console.log(result);
+      }
+      setLoading(false);
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+
+ 
 
   const orderConfirm = async (id, status) => {
     setIsSubmitting(true); // Set the submitting state to true
@@ -213,6 +241,14 @@ const AdminOrders = () => {
   ////////////////////////////////
 
   console.log(orderList);
+  const targetStatuses = ["Returned", "Return Requested"];
+const filteredOrders = orderList.filter((order) =>
+  targetStatuses.includes(order.status)
+);
+
+console.log(filteredOrders);
+
+
 
   ////////////////////////////////
   useEffect(() => {
@@ -222,41 +258,26 @@ const AdminOrders = () => {
 
   return (
     <>
-      <Box
-        spacing={4}
-        sx={{
-          width: "100%",
-          marginTop: "0rem",
-          paddindTop: "5rem",
-          overflowX: "auto", // Add horizontal scrolling for smaller screens
-          "&::-webkit-scrollbar": {
-            height: "0.4rem",
-          },
-          "&::-webkit-scrollbar-thumb": {
-            backgroundColor: "#c4c4c4",
-          },
-        }}
-      >
+      <Box spacing={4} sx={{ width: "100%", paddingLeft: "1rem" }}>
         <Toaster toasterOptions={{ duratiom: 4000 }} />
 
         <Box
           sx={{
-            borderBottom: 1,
-            borderColor: "divider",
-            paddingTop: "5rem",
+            display: "flex",
             justifyContent: "center",
+            width: "100%",
+            alignItems: "center",
+            marginTop: "5rem",
           }}
         >
           <Tabs
             value={value}
             onChange={handleChange}
-            aria-label="basic tabs example"
-            sx={{
-              margin: "auto",
-              display: "flex",
-              justifyContent: "center",
-              paddingLeft: "25rem",
-            }}
+            indicatorColor="secondary"
+            textColor="inherit"
+            variant="fullWidth"
+            aria-label="full width tabs example"
+            sx={{ width: { sm: "50rem", lg: "30vw" } }}
           >
             <Tab label="Orders" {...a11yProps(0)} />
             <Tab label="Returns" {...a11yProps(1)} />
@@ -264,285 +285,267 @@ const AdminOrders = () => {
         </Box>
 
         <TabPanel value={value} index={0}>
-          <Box
+          <TableContainer
+            component={Paper}
             sx={{
-              borderBottom: 1,
-              borderColor: "divider",
-              paddingTop: "2vh",
-              justifyContent: "center",
-              width: "100%", // Update to use 100% width
-              maxWidth: "69.5rem", // Add maxWidth for better responsiveness
-              margin: "0 auto", // Center align the container
-              overflowX: "hidden", // Add horizontal scrolling for smaller screens
-              "@media (min-width: 960px)": {
-                overflowX: "hidden", // Hide horizontal scrollbar for screens wider than 960px
+              marginTop: "1rem",
+              height: "100%",
+              width: "100%", // Set the container width to 100% to occupy the available space
+              marginLeft: "0",
+              overflowX: "auto", // Add horizontal scrolling for smaller screens
+              "&::-webkit-scrollbar": {
+                height: "0.4rem",
+              },
+              "&::-webkit-scrollbar-thumb": {
+                backgroundColor: "#c4c4c4",
               },
             }}
           >
-            <TableContainer
-              component={Paper}
-              sx={{
-                height: "100%",
+            <Table aria-label="customized table">
+              <TableHead>
+                <TableRow>
+                  <StyledTableCell>SI. No</StyledTableCell>
+                  <StyledTableCell align="center">User</StyledTableCell>
+                  <StyledTableCell align="center">Products</StyledTableCell>
+                  <StyledTableCell align="center">Total</StyledTableCell>
+                  <StyledTableCell align="center">Status</StyledTableCell>
+                  <StyledTableCell align="center">Action</StyledTableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {orderList.map((order, index) => (
+                  <StyledTableRow key={order._id}>
+                    <StyledTableCell component="th" scope="order">
+                      {index + 1} {/* Display serial number */}
+                    </StyledTableCell>
+                    <StyledTableCell align="center">
+                      {order.userId.firstName}
+                    </StyledTableCell>
+                    <StyledTableCell align="center">
+                      {order.products.items.map((item) => (
+                        <div
+                          key={item.productId._id}
+                          style={{ margin: "0.5rem" }}
+                        >
+                          <img
+                            src={item.productId.image[0].url}
+                            alt={item.productId.name}
+                            style={{ width: "7vw" }}
+                          />
+                        </div>
+                      ))}
+                    </StyledTableCell>
 
-                marginLeft: "0.5rem",
-              }}
-            >
-              <Table aria-label="customized table">
-                <TableHead>
-                  <TableRow>
-                    <StyledTableCell>SI. No</StyledTableCell>
-                    <StyledTableCell align="center">User</StyledTableCell>
-                    <StyledTableCell align="center">Products</StyledTableCell>
-                    <StyledTableCell align="center">Total</StyledTableCell>
-                    <StyledTableCell align="center">Status</StyledTableCell>
-                    <StyledTableCell align="center">Action</StyledTableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {orderList.map((order, index) => (
-                    <StyledTableRow key={order._id}>
-                      <StyledTableCell component="th" scope="order">
-                        {index + 1} {/* Display serial number */}
-                      </StyledTableCell>
-                      <StyledTableCell align="center">
-                        {order.userId.firstName}
-                      </StyledTableCell>
-                      <StyledTableCell align="center">
-                        {order.products.items.map((item) => (
-                          <div
-                            key={item.productId._id}
-                            style={{ margin: "0.5rem" }}
-                          >
-                            <img
-                              src={item.productId.image[0].url}
-                              alt={item.productId.name}
-                              style={{ width: "7vw" }}
-                            />
-                          </div>
-                        ))}
-                      </StyledTableCell>
+                    <StyledTableCell align="center">
+                      {order.products.totalPrice}
+                    </StyledTableCell>
+                    <StyledTableCell align="center">
+                      {order.status}
+                    </StyledTableCell>
+                    <StyledTableCell align="center">
+                      {order.status === "Build" ? (
+                        <Button
+                          variant="contained"
+                          disabled={order._id === id && isSubmitting}
+                          sx={{
+                            width: "6rem", // Set the desired width for the button
+                            "@media (max-width: 960px)": {
+                              width: "10vw", // Set the desired width for smaller screens
+                            },
+                          }}
+                          onClick={() => {
+                            handleOrder(order._id, order.status);
+                            setId(order._id);
+                          }}
+                        >
+                          {order._id === id && isSubmitting
+                            ? "....." // Replace "....." with the desired text for when the conditions are met
+                            : "Confirm"}
+                        </Button>
+                      ) : (
+                        ""
+                      )}
 
-                      <StyledTableCell align="center">
-                        {order.products.totalPrice}
-                      </StyledTableCell>
-                      <StyledTableCell align="center">
-                        {order.status}
-                      </StyledTableCell>
-                      <StyledTableCell align="center">
-                        {order.status === "Build" ? (
-                          <Button
-                            variant="contained"
-                            disabled={order._id === id && isSubmitting}
-                            sx={{
-                              width: "6rem", // Set the desired width for the button
-                              "@media (max-width: 960px)": {
-                                width: "10vw", // Set the desired width for smaller screens
-                              },
-                            }}
-                            onClick={() => {
-                              handleOrder(order._id, order.status);
-                              setId(order._id);
-                            }}
-                          >
-                            {order._id === id && isSubmitting
-                              ? "....." // Replace "....." with the desired text for when the conditions are met
-                              : "Confirm"}
-                          </Button>
-                        ) : (
-                          ""
-                        )}
+                      {order.status === "Confirmed" ? (
+                        <Button
+                          variant="contained"
+                          disabled={order._id === id && isSubmitting}
+                          sx={{
+                            width: "6rem", // Set the desired width for the button
+                            "@media (max-width: 960px)": {
+                              width: "10vw", // Set the desired width for smaller screens
+                            },
+                          }}
+                          onClick={() => {
+                            handleOrder(order._id, order.status);
 
-                        {order.status === "Confirmed" ? (
-                          <Button
-                            variant="contained"
-                            disabled={order._id === id && isSubmitting}
-                            sx={{
-                              width: "6rem", // Set the desired width for the button
-                              "@media (max-width: 960px)": {
-                                width: "10vw", // Set the desired width for smaller screens
-                              },
-                            }}
-                            onClick={() => {
-                              handleOrder(order._id, order.status);
+                            setId(order._id);
+                          }}
+                        >
+                          {order._id === id && isSubmitting
+                            ? "....." // Replace "....." with the desired text for when the conditions are met
+                            : "Pack"}
+                        </Button>
+                      ) : (
+                        ""
+                      )}
+                      {order.status === "Packed" ? (
+                        <Button
+                          variant="contained"
+                          disabled={order._id === id && isSubmitting}
+                          sx={{
+                            width: "6rem", // Set the desired width for the button
+                            "@media (max-width: 960px)": {
+                              width: "10vw", // Set the desired width for smaller screens
+                            },
+                          }}
+                          onClick={() => {
+                            handleOrder(order._id, order.status);
 
-                              setId(order._id);
-                            }}
-                          >
-                            {order._id === id && isSubmitting
-                              ? "....." // Replace "....." with the desired text for when the conditions are met
-                              : "Pack"}
-                          </Button>
-                        ) : (
-                          ""
-                        )}
-                        {order.status === "Packed" ? (
-                          <Button
-                            variant="contained"
-                            disabled={order._id === id && isSubmitting}
-                            sx={{
-                              width: "6rem", // Set the desired width for the button
-                              "@media (max-width: 960px)": {
-                                width: "10vw", // Set the desired width for smaller screens
-                              },
-                            }}
-                            onClick={() => {
-                              handleOrder(order._id, order.status);
+                            setId(order._id);
+                          }}
+                        >
+                          {order._id === id && isSubmitting
+                            ? "....." // Replace "....." with the desired text for when the conditions are met
+                            : "Shipment"}
+                        </Button>
+                      ) : (
+                        ""
+                      )}
+                      {order.status === "Shipped" ? (
+                        <Button
+                          variant="contained"
+                          disabled={order._id === id && isSubmitting}
+                          sx={{
+                            width: "6rem", // Set the desired width for the button
+                            "@media (max-width: 960px)": {
+                              width: "10vw", // Set the desired width for smaller screens
+                            },
+                          }}
+                          onClick={() => {
+                            handleOrder(order._id, order.status);
 
-                              setId(order._id);
-                            }}
-                          >
-                            {order._id === id && isSubmitting
-                              ? "....." // Replace "....." with the desired text for when the conditions are met
-                              : "Shipment"}
-                          </Button>
-                        ) : (
-                          ""
-                        )}
-                        {order.status === "Shipped" ? (
-                          <Button
-                            variant="contained"
-                            disabled={order._id === id && isSubmitting}
-                            sx={{
-                              width: "6rem", // Set the desired width for the button
-                              "@media (max-width: 960px)": {
-                                width: "10vw", // Set the desired width for smaller screens
-                              },
-                            }}
-                            onClick={() => {
-                              handleOrder(order._id, order.status);
+                            setId(order._id);
+                          }}
+                        >
+                          {order._id === id && isSubmitting
+                            ? "....." // Replace "....." with the desired text for when the conditions are met
+                            : "Delivered"}
+                        </Button>
+                      ) : (
+                        ""
+                      )}
 
-                              setId(order._id);
-                            }}
-                          >
-                            {order._id === id && isSubmitting
-                              ? "....." // Replace "....." with the desired text for when the conditions are met
-                              : "Delivered"}
-                          </Button>
-                        ) : (
-                          ""
-                        )}
+                      {order.status === "Delivered" ? (
+                        <Typography color="green">Delivered</Typography>
+                      ) : (
+                        " "
+                      )}
 
-                        {order.status === "Delivered" ? (
-                          <Typography color="green">Delivered</Typography>
-                        ) : (
-                          " "
-                        )}
-
-                        {/* {order.status === "Attempted" ? : order.status === "Packed" ?  : order.status === "Delivered" ? (
+                      {/* {order.status === "Attempted" ? : order.status === "Packed" ?  : order.status === "Delivered" ? (
                           <Typography color="green">Delivered</Typography>
                         ) : (
                           <Typography color="brown">Confirmed</Typography>
                         )} */}
-                      </StyledTableCell>
-                    </StyledTableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Box>
+                    </StyledTableCell>
+                  </StyledTableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
         </TabPanel>
 
         <TabPanel value={value} index={1}>
-          <Typography>returns</Typography>
+          <TableContainer
+            component={Paper}
+            sx={{
+              marginTop: "1rem",
+              height: "100%",
+              width: "100%", // Set the container width to 100% to occupy the available space
+              marginLeft: "0",
+              overflowX: "auto", // Add horizontal scrolling for smaller screens
+              "&::-webkit-scrollbar": {
+                height: "0.4rem",
+              },
+              "&::-webkit-scrollbar-thumb": {
+                backgroundColor: "#c4c4c4",
+              },
+            }}
+          >
+            <Table aria-label="customized table">
+              <TableHead>
+                <TableRow>
+                  <StyledTableCell>SI. No</StyledTableCell>
+                  <StyledTableCell align="center">User</StyledTableCell>
+                  <StyledTableCell align="center">Products</StyledTableCell>
+                  <StyledTableCell align="center">Total</StyledTableCell>
+                  <StyledTableCell align="center">Status</StyledTableCell>
+                  <StyledTableCell align="center">Action</StyledTableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredOrders?.map((order, index) => (
+                  <StyledTableRow key={order._id}>
+                    <StyledTableCell component="th" scope="order">
+                      {index + 1} {/* Display serial number */}
+                    </StyledTableCell>
+                    <StyledTableCell align="center">
+                      {order.userId.firstName}
+                    </StyledTableCell>
+                    <StyledTableCell align="center">
+                      {order.products.items.map((item) => (
+                        <div
+                          key={item.productId._id}
+                          style={{ margin: "0.5rem" }}
+                        >
+                          <img
+                            src={item.productId.image[0].url}
+                            alt={item.productId.name}
+                            style={{ width: "7vw" }}
+                          />
+                        </div>
+                      ))}
+                    </StyledTableCell>
+
+                    <StyledTableCell align="center">
+                      {order.products.totalPrice}
+                    </StyledTableCell>
+                    <StyledTableCell align="center">
+                      {order.status}
+                    </StyledTableCell>
+                    <StyledTableCell align="center">
+                     
+                      {order.status === "Return Requested" ? (
+                        <Button
+                          variant="contained"
+                          disabled={order._id === id && isSubmitting}
+                          sx={{
+                            width: "6rem", // Set the desired width for the button
+                            "@media (max-width: 960px)": {
+                              width: "10vw", // Set the desired width for smaller screens
+                            },
+                          }}
+                          onClick={() => {
+                            handleReturn(order._id);
+
+                            setId(order._id);
+                          }}
+                        >
+                          {order._id === id && isSubmitting
+                            ? "....." // Replace "....." with the desired text for when the conditions are met
+                            : "Return"}
+                        </Button>
+                      ) : (
+                        ""
+                      )}
+                      
+                    </StyledTableCell>
+                  </StyledTableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
         </TabPanel>
-
-        {/* <Button
-          variant="outlined"
-          onClick={handleClickOpen}
-          sx={{ marginTop: 10 }}
-        >
-          Add Coupon
-        </Button>
-
-        <Dialog open={open} onClose={handleClose}>
-          <DialogTitle>Coupon</DialogTitle>
-          <DialogContent sx={{ display: "flex", flexDirection: "column" }}>
-            <DialogContentText>Please Enter Coupon Details</DialogContentText>
-            <TextField
-              autoFocus
-              margin="dense"
-              id="name"
-              type="name"
-              variant="standard"
-              label={errors.name && touched.name ? errors.name : "Coupon Name"}
-              value={values.name}
-              //   error={errors.name && touched.name ? true : false}
-              onChange={handleChange}
-              onBlur={handleBlur}
-            />
-            <TextField
-              autoFocus
-              margin="dense"
-              id="name"
-              type="name"
-              name="type"
-              variant="standard"
-              label={errors.type && touched.type ? errors.type : "Coupon Type"}
-              value={values.type}
-              //   error={errors.type && touched.type ? true : false}
-              onChange={handleChange}
-              onBlur={handleBlur}
-            />
-            <TextField
-              autoFocus
-              margin="dense"
-              id="name"
-              name="discount"
-              type="name"
-              variant="standard"
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    {values.type.toLowerCase() == "flat" ? "/-" : "%"}
-                  </InputAdornment>
-                ),
-              }}
-              label={
-                errors.discount && touched.discount
-                  ? errors.discount
-                  : "Coupon Discount"
-              }
-              value={values.discount}
-              //   error={errors.discount && touched.discount ? true : false}
-              onChange={handleChange}
-              onBlur={handleBlur}
-            />
-
-            {values.type === "upto" ? (
-              <TextField
-                autoFocus
-                margin="dense"
-                id="name"
-                type="name"
-                name="maxDiscount"
-                variant="standard"
-                label={
-                  errors.maxDiscount && touched.maxDiscount
-                    ? errors.maxDiscount
-                    : "maxDiscount"
-                }
-                value={values.maxDiscount}
-                //   error={errors.type && touched.type ? true : false}
-                onChange={handleChange}
-                onBlur={handleBlur}
-              />
-            ) : (
-              ""
-            )}
-
-            <DatePicker
-              value={validity}
-              onChange={(newValue) => setValidity(newValue)}
-              label="Enter Validity"
-              sx={{ marginTop: 2 }}
-            />
-          </DialogContent>
-
-          <DialogActions>
-            <Button onClick={handleClose}>Cancel</Button>
-            <Button onClick={handleSubmit}>Add</Button>
-          </DialogActions>
-        </Dialog> */}
       </Box>
     </>
   );

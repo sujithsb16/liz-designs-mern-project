@@ -1,5 +1,5 @@
 const express = require("express");
-const { registerVendor, vendorLogin, vendorDetails, addProduct, getCategory, getVendorProduct, productStatusControl, getOrder, orderStatusControl, } = require("../controllers/vendorController");
+const { registerVendor, vendorLogin, vendorDetails, addProduct, getCategory, getVendorProduct, productStatusControl, getOrder, orderStatusControl, getChart, } = require("../controllers/vendorController");
 const { vendorProtect } = require("../middlewares/authMiddleware");
 
 const router = express.Router();
@@ -13,6 +13,7 @@ router.route("/getproduct").get(vendorProtect, getVendorProduct);
 router.route("/blockproduct/:id").patch(vendorProtect, productStatusControl);
 
 router.route("/getorders").get(vendorProtect, getOrder);
+router.route("/getchart").get(vendorProtect, getChart);
 router.route("/orderstatus/:id").patch(vendorProtect, orderStatusControl);
 
 

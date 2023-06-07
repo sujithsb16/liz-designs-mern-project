@@ -12,8 +12,8 @@ const adminProtect = asyncHandler(async (req, res, next) => {
     try {
       token = req.headers.authorization.split(" ")[1];
 
-      console.log("jwt token admin :", token);
-      console.log("1");
+      // console.log("jwt token admin :", token);
+      // console.log("1");
 
       //decodes token id
 
@@ -21,12 +21,12 @@ const adminProtect = asyncHandler(async (req, res, next) => {
 
       const admin = await User.findById(decoded.id).select("-password");
 
-      req.admin = admin;
-
+      
       if (!admin.isAdmin) {
         res.status(401);
         throw new Error("Not admin");
       }
+      req.admin = admin;
       next();
     } catch (error) {
       res.status(401);
@@ -61,7 +61,8 @@ const vendorProtect = asyncHandler(async (req, res, next) => {
 
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-      req.vendor = await Vendor.findById(decoded.id).select("-password");
+      // req.vendor = await Vendor.findById(decoded.id).select("-password");
+        req.vendorId = decoded.id
 
       next();
     } catch (error) {
@@ -92,14 +93,16 @@ const userProtect = asyncHandler(async (req, res, next) => {
     try {
       token = req.headers.authorization.split(" ")[1];
 
-      console.log("jwt token :", token);
-      console.log("1");
+      // console.log("jwt token :", token);
+      // console.log("1");
 
       //decodes token id
 
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-      req.user = await User.findById(decoded.id).select("-password");
+      req.userId= decoded.id
+
+      
 
       next();
     } catch (error) {

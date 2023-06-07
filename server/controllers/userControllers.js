@@ -127,7 +127,7 @@ const userLogin = asyncHandler(async (req, res) => {
 
 const updateUser = asyncHandler(async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.userId
     const updatedUser = req.body;
 
     console.log(userId);
@@ -204,15 +204,31 @@ const getProduct = asyncHandler(async (req, res) => {
 });
 
 const getSingletProduct = asyncHandler(async (req, res) => {
-  const {id} = req.params;
-  console.log(id);
-  const product = await Product.findById(id).populate({path:"vendor"});
-if(product){
-res.status(201).json(product);
-}else{
-  res.status(400);
-  throw new Error("Product not Found!");
-}
+  try {
+
+    const { id } = req.params;
+    console.log(id);
+    const product = await Product.findById(id).populate({ path: "vendor" });
+    const ratings = product.productRating;
+    const totalRatings = ratings.length;
+    const sumRatings = ratings.reduce((acc, rating) => acc + rating.rating, 0);
+    const averageRating = totalRatings > 0 ? sumRatings / totalRatings : 0;
+
+    console.log(averageRating );
+
+    if (product) {
+      res.status(201).json({product, averageRating});
+    } else {
+      res.status(400);
+      throw new Error("Product not Found!");
+    }
+    
+  } catch (error) {
+
+    console.log(error.message);
+    
+  }
+  
   
 });
 
@@ -220,9 +236,9 @@ const addToCart = asyncHandler(async (req, res, next) => {
   try {
     const productId = req.params.id;
     console.log(productId);
-    const user = req.user;
+    const userId = req.userId;
     // console.log("server" + productId ,user);
-    const userData = await User.findById({ _id: user._id });
+    const userData = await User.findById({ _id: userId });
     const productData = await Product.findById({ _id: productId });
     console.log(productData);
     userData.addToCart(productData);
@@ -240,9 +256,9 @@ const editCart = asyncHandler(async (req, res, next) => {
   try {
     const productId = req.params.id;
     console.log(productId);
-    const user = req.user;
+    const userId = req.userId;
     console.log("server" + productId ,user);
-    const userData = await User.findById({ _id: user._id });
+    const userData = await User.findById({ _id: userId });
     const productData = await Product.findById({ _id: productId });
     // console.log(productData);
     userData.editCart(productData);
@@ -261,7 +277,7 @@ const getCart = asyncHandler(async (req, res) => {
 
   try {
 
-    const userId = req.user._id
+    const userId = req.userId
 
     console.log(userId);
 
@@ -282,20 +298,23 @@ const userProfile = asyncHandler(async (req, res) => {
 
   try {
 
-    const userId = req.user._id
+    const userId = req.userId
 
     console.log(userId);
 
     const coupons = await Coupon.find({ isBlocked: false });
     const user = await User.findById({ _id: userId }).select("-password");
-    const orders = await Order.find({ userId: user._id }).populate([
-      {
-        path: "products.items.productId",
-      },
-      {
-        path: "couponApplied",
-      },
-    ]);
+    const orders = await Order.find({ userId: userId })
+      .populate([
+        {
+          path: "products.items.productId",
+        },
+        {
+          path: "couponApplied",
+        },
+      ])
+      .sort({ createdAt: -1 });
+
     if(!coupons){
       res.status(400);
       throw new Error("No coupons availabe");
@@ -315,10 +334,12 @@ const userProfile = asyncHandler(async (req, res) => {
 
 const getUser = asyncHandler(async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.userId;
     const user = await User.findById(userId)
       .populate("activatedCoupons", "-createdAt -updatedAt")
       .populate({ path: "cart.items.productId" });
+
+      console.log(user);
     if (!user) {
       res.status(400);
       throw new Error("No user available");
@@ -332,7 +353,7 @@ const getUser = asyncHandler(async (req, res) => {
 
 const addAddress = asyncHandler(async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.userId;
     const address = req.body;
 
     console.log(userId);
@@ -364,7 +385,7 @@ const addAddress = asyncHandler(async (req, res) => {
 });
 const deleteAddress = asyncHandler(async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.userId;
     const index = req.params.id;
 
     console.log(userId);
@@ -397,7 +418,7 @@ const deleteAddress = asyncHandler(async (req, res) => {
 
 const activateCoupon = asyncHandler(async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.userId;
     const couponId = req.params.couponId;
 
     // Find the coupon with the given ID
@@ -437,7 +458,7 @@ const activateCoupon = asyncHandler(async (req, res) => {
 const deleteCart = asyncHandler(async (req, res, next) => {
   try {
     const productId = req.params.id;
-    const userId = req.user._id;
+    const userId = req.userId;
     const userData = await User.findById({ _id: userId });
     await userData.removefromCart(productId);
     res.status(201).json({ message: "deleted sucessfully" });
@@ -449,7 +470,6 @@ const deleteCart = asyncHandler(async (req, res, next) => {
 
 const pagination = asyncHandler(async (req, res) => {
   try {
-    const user = req.user;
     const product = await Product.find();
     const page = parseInt(req.params.page);
     const limit = parseInt(req.params.limit);
@@ -487,7 +507,7 @@ const updateCart = async (req, res) => {
   try {
      const productId = req.params.id;
      console.log(productId);
-     const user = req.user;
+     const userId = req.userId;
     const userData = await User.findById({ _id: user._id });
     const foundProduct = userData.cart.item.findIndex(
       (objInItems) => objInItems.productId == productId
@@ -515,8 +535,8 @@ const updateCart = async (req, res) => {
 const addToWishlist = asyncHandler(async (req, res) => {
   try {
     const productId = req.params.id;
-    const user = req.user;
-    const userData = await User.findById({ _id: user._id });
+    const userId = req.userId;
+    const userData = await User.findById({ _id: userId });
     const productData = await Product.findById({ _id: productId });
     userData.addToWishlist(productData);
     console.log(productData);
@@ -528,9 +548,9 @@ const addToWishlist = asyncHandler(async (req, res) => {
 
 const addCartDeleteWishlist =asyncHandler( async (req, res) => {
   try {
-    const user = req.user;
+    const userId = req.userId;
     const productId = req.params.id;
-    const userData = await User.findById({ _id: user._id });
+    const userData = await User.findById({ _id: userId });
     const productData = await Product.findById({ _id: productId });
     const add = await userData.addToCart(productData);
     if (add) {
@@ -548,8 +568,8 @@ const addCartDeleteWishlist =asyncHandler( async (req, res) => {
 const deleteWishlist = asyncHandler(async (req, res) => {
   try {
     const productId = req.params.id;
-    const user = req.user;
-    const userData = await User.findById({ _id: user._id });
+    const userId = req.userId;
+    const userData = await User.findById({ _id: userId });
     await userData.removefromWishlist(productId);
      res.status(201).json({ message: "deleted WishList Sucessfully" });
   } catch (error) {
@@ -559,7 +579,7 @@ const deleteWishlist = asyncHandler(async (req, res) => {
 
 const getwishlist = asyncHandler(async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.userId;
 
     console.log(userId);
 
@@ -593,7 +613,8 @@ const getBanner = asyncHandler(async (req, res) => {
 ////////////////order///////////////////////
 const buildOrder = asyncHandler(async (req, res) => {
   try {
-    const user = req.user;
+    const userId = req.userId;
+    const user = await User.findById(userId);
     const { orderAddress, totalPrice, appliedCoupon, discount, paymentMethod } =
       req.body;
 
@@ -660,7 +681,8 @@ const buildOrder = asyncHandler(async (req, res) => {
 
 const cancelOrder = asyncHandler(async (req, res) => {
   try {
-    const user = req.user;
+    const userId = req.userId;
+    const user = await User.findById(userId)
     const orderId = req.params.id;
 
     const order = await Order.findById(orderId);
@@ -689,6 +711,52 @@ const cancelOrder = asyncHandler(async (req, res) => {
         { $pull: { usedBy: user._id } }
       );
     }
+
+
+    
+
+    console.log(order);
+
+    res.status(200).json({ message: "Order cancelled successfully" });
+  } catch (error) {
+    // Handle and log the error
+    console.error("An error occurred while cancelling the order:", error);
+    // Return an error response to the client
+    res.status(500).json({ message: "Failed to cancel the order" });
+  }
+});
+const returnOrder = asyncHandler(async (req, res) => {
+  try {
+    const userId = req.userId;
+    const user = await User.findById(userId)
+    const orderId = req.params.id;
+
+    const order = await Order.findById(orderId);
+
+    order.status = "Return Requested";
+    await order.save();
+
+    // const productDetails = await Product.find();
+    // for (let i = 0; i < productDetails.length; i++) {
+    //   for (let j = 0; j < order.products.items.length; j++) {
+    //     if (
+    //       productDetails[i]._id.equals(
+    //         order.products.items[j].productId && productDetails[i].sales!=0
+    //       )
+    //     ) {
+    //       productDetails[i].sales -= order.products.items[j].qty;
+    //       productDetails[i].qty += order.products.items[j].qty;
+    //       await productDetails[i].save();
+    //     }
+    //   }
+    // }
+
+    // if (order.discount && order.couponApplied) {
+    //   await Coupon.updateOne(
+    //     { _id: order.couponApplied },
+    //     { $pull: { usedBy: user._id } }
+    //   );
+    // }
 
 
     
@@ -737,7 +805,6 @@ const payment = asyncHandler(async (req, res) => {
 const getOrderDetails = asyncHandler(async (req, res) => {
   try {
     const orderId = req.params.id;
-    const user = req.user;
      const populatedOrder = await Order.findById(orderId)
        .populate("userId", "-password")
        .populate("products.items.productId")
@@ -748,6 +815,46 @@ const getOrderDetails = asyncHandler(async (req, res) => {
        .json({ message: "Order placed successfully", order: populatedOrder });
   } catch (error) {
     console.log(error.message);
+  }
+});
+
+const rateProduct = asyncHandler(async (req, res) => {
+  try {
+    const productId = req.params.id;
+    const {rate} = req.body
+
+    const userId = req.userId
+
+    console.log(rate);
+    console.log(productId);
+
+    const product = await Product.findById(productId);
+
+    product.rating = rate;
+    if (!product.ratedBy.includes(userId)) {
+      product.ratedBy.push(userId);
+    }
+    
+     const existingRatingIndex = product.productRating.findIndex((item) =>
+       item.user.equals(userId)
+     );
+
+     if (existingRatingIndex !== -1) {
+       // Remove the existing rating
+       product.productRating.splice(existingRatingIndex, 1);
+     }
+
+     // Add the new rating
+     product.productRating.push({ user: userId, rating: rate });
+    await product.save();
+    res.status(200).json({ message: "Rating updated successfully" });
+  } catch (error) {
+    // Handle and log the error
+    console.error("An error occurred while Rating the product:", error);
+    // Return an error response to the client
+    res
+      .status(500)
+      .json({ message: "An error occurred while Rating the product" });
   }
 });
 
@@ -781,4 +888,6 @@ module.exports = {
   payment,
   deleteAddress,
   getOrderDetails,
+  rateProduct,
+  returnOrder,
 };

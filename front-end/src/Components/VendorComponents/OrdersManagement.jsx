@@ -5,7 +5,7 @@ import TableCell, { tableCellClasses } from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
-import { Box, InputAdornment, Typography, styled } from "@mui/material";
+import { Box, InputAdornment, Rating, Typography, styled } from "@mui/material";
 import { useSelector } from "react-redux";
 import toast, { Toaster } from "react-hot-toast";
 import Paper from "@mui/material/Paper";
@@ -16,6 +16,11 @@ import Button from "@mui/material/Button";
 import { useNavigate } from "react-router-dom";
 import { confirmAlert } from "react-confirm-alert";
 import { orderStatusControl, vendorOrderList } from "../../apiCalls/vendorApiCalls";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogTitle from "@mui/material/DialogTitle";
 
 
 function TabPanel(props) {
@@ -129,6 +134,35 @@ const OrdersManagement = () => {
  const token = vendor.vendorInfo.token;
   ////////////////////////////////
   const [value, setValue] = React.useState(0);
+    const [order, setOrder] = useState("");
+       const [open, setOpen] = useState(false);
+
+
+
+    const handleViewOrder = async (orderId) => {
+      handleClickOpen();
+      const order = orderList.find((order) => order._id === orderId);
+
+      if (order) {
+        setOrder(order);
+
+        console.log("Found order:", order);
+      } else {
+        // Order not found
+        console.log("Order not found");
+      }
+    };
+
+    const handleClickOpen = () => {
+      setOpen(true);
+    };
+
+    const handleClose = () => {
+      setOpen(false);
+      setOrder("");
+    };
+
+    
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -203,7 +237,6 @@ const OrdersManagement = () => {
             justifyContent: "center",
             width: "100%",
             display: "flex",
-            justifyContent: "center",
             alignItems: "center",
           }}
         >
@@ -219,7 +252,6 @@ const OrdersManagement = () => {
             }}
           >
             <Tab label="Orders" {...a11yProps(0)} />
-            <Tab label="Returns" {...a11yProps(1)} />
           </Tabs>
         </Box>
 
@@ -253,8 +285,8 @@ const OrdersManagement = () => {
                     <StyledTableCell>SI. No</StyledTableCell>
                     <StyledTableCell align="center">User</StyledTableCell>
                     <StyledTableCell align="center">Products</StyledTableCell>
-                    <StyledTableCell align="center">Total</StyledTableCell>
                     <StyledTableCell align="center">Status</StyledTableCell>
+                    <StyledTableCell align="center">Details</StyledTableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -272,15 +304,33 @@ const OrdersManagement = () => {
                             key={item.productId._id}
                             src={item.productId.image[0].url}
                             alt={item.productId.name}
-                            style={{ width: "7vw" }}
+                            style={{ width: "7vw", marginLeft:"1vw" }}
                           />
                         ))}
                       </StyledTableCell>
                       <StyledTableCell align="center">
-                        {order.products.totalPrice}
+                        {order.status}{" "}
                       </StyledTableCell>
                       <StyledTableCell align="center">
-                        {order.status}
+                        <Button
+                          variant="contained"
+                          sx={{
+                            width: "6rem", // Set the desired width for the button
+                            "@media (max-width: 960px)": {
+                              width: "10vw", // Set the desired width for smaller screens
+                            },
+                          }}
+                          onClick={() => {
+                            // handleProductBlock(
+                            //   order._id,
+                            //   order.isBlocked
+                            // );
+
+                            handleViewOrder(order._id);
+                          }}
+                        >
+                          {"Details"}
+                        </Button>
                       </StyledTableCell>
                     </StyledTableRow>
                   ))}
@@ -290,9 +340,7 @@ const OrdersManagement = () => {
           </Box>
         </TabPanel>
 
-        <TabPanel value={value} index={1}>
-          <Typography>returns</Typography>
-        </TabPanel>
+      
 
         {/* <Button
           variant="outlined"
@@ -391,6 +439,83 @@ const OrdersManagement = () => {
             <Button onClick={handleSubmit}>Add</Button>
           </DialogActions>
         </Dialog> */}
+        <Dialog open={open} onClose={handleClose}>
+          <DialogTitle>Order Details</DialogTitle>
+          <DialogContent
+            sx={{ display: "flex", flexDirection: "column", gap: "1rem" }}
+          >
+            {order && (
+              <>
+                <DialogContentText
+                  sx={{ fontFamily: "Roboto", fontWeight: "bold" }}
+                >
+                  <b>Order ID:</b> {order._id}
+                </DialogContentText>
+                <DialogContentText sx={{ fontFamily: "Roboto" }}>
+                  <b>Order Date:</b> {new Date(order.createdAt).toDateString()}
+                </DialogContentText>
+                <DialogContentText sx={{ fontFamily: "Roboto" }}>
+                  <b>Order Status:</b> {order.status}
+                </DialogContentText>
+                <DialogContentText sx={{ fontFamily: "Roboto" }}>
+                  <b>Address:</b> {order.address}, {order.city}, {order.state},{" "}
+                  {order.zip}
+                </DialogContentText>
+                <DialogContentText
+                  sx={{ fontFamily: "Roboto", fontWeight: "bold" }}
+                >
+                  <b>Products:</b>
+                </DialogContentText>
+                {order.products.items.map((item) => (
+                  <div
+                    key={item.productId._id}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      marginBottom: "1rem",
+                    }}
+                  >
+                    <img
+                      src={item.productId.image[0].url}
+                      alt={item.productId.name}
+                      style={{ width: "100px", marginRight: "1rem" }}
+                    />
+                    <div style={{ marginTop: "1rem" }}>
+                      <p style={{ fontFamily: "Roboto", marginTop: "1rem" }}>
+                        {item.productId.name}
+                      </p>
+                      <p style={{ fontFamily: "Roboto", marginTop: "1rem" }}>
+                        Price: ₹{item.productId.price}
+                      </p>
+                      <p style={{ fontFamily: "Roboto", marginTop: "1rem" }}>
+                        Quantity: {item.qty}
+                      </p>
+                      <p style={{ fontFamily: "Roboto", marginTop: "1rem" }}>
+                        Total: ₹{item.productId.price * item.qty}
+                      </p>
+                    </div>
+                    <Box
+                      sx={{
+                        width: "60%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <>
+                        <Rating value={item.productId.rating} readOnly /> 
+                      </>
+                    </Box>
+                  </div>
+                ))}
+              </>
+            )}
+          </DialogContent>
+
+          <DialogActions>
+            <Button onClick={handleClose}>Close</Button>
+          </DialogActions>
+        </Dialog>
       </Box>
     </>
   );

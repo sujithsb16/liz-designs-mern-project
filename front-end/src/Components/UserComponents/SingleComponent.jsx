@@ -108,6 +108,7 @@ const [goToCart, setGoTOCart] = useState(false)
 
 const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [rating, setRating] = useState("")
 
 
     const [selectedImage, setSelectedImage] = useState("");
@@ -123,7 +124,8 @@ const [error, setError] = useState(false);
         if (result.data) {
           console.log("test 4 ");
           console.log(result.data);
-          setProduct(result.data);
+          setProduct(result.data.product);
+          setRating(result.data.averageRating);
         } else {
           setError(true);
           setTimeout(() => {
@@ -204,6 +206,8 @@ const [error, setError] = useState(false);
       setSelectedImage(imageUrl);
     };
 
+    console.log(product.averageRating);
+
     /////////////image zoom///////////////////////
 
 
@@ -248,9 +252,23 @@ const [error, setError] = useState(false);
               >
                 {product.name}
               </Typography>
-              <Box sx={{ mb: 2 }}>
-                <Rating value={product.rating} readOnly />
-              </Box>
+              {rating !== undefined && ( // Updated condition to check if rating is not undefined
+                <Box sx={{ mb: 2, display: "flex", justifyContent: "center" }}>
+                  <Rating
+                    name="read-only"
+                    precision={0.5}
+                    value={rating}
+                    readOnly
+                  />{" "}
+                  <Typography
+                    variant="body1"
+                    gutterBottom
+                    sx={{ fontFamily: "Inria Serif", marginLeft: ".5vw" }}
+                  >
+                    {`(${product?.ratedBy?.length})`}
+                  </Typography>
+                </Box>
+              )}
               <Typography
                 variant="body1"
                 gutterBottom
@@ -371,18 +389,22 @@ const [error, setError] = useState(false);
               </Box>
             </Grid>
           </Grid>
-          <Button
-            // disabled={loading? true: false}
-            variant="contained"
-            disabled={!token ? true : false}
-            sx={{ my: 3, borderRadius: 5, fontFamily: "Inria Serif" }}
-            onClick={() => {
-              navigate("/checkout");
-            }}
-            color="primary"
-          >
-            Check Out
-          </Button>
+          {token ? (
+            <Button
+              // disabled={loading? true: false}
+              variant="contained"
+              disabled={!goToCart ? true : false}
+              sx={{ my: 3, borderRadius: 5, fontFamily: "Inria Serif" }}
+              onClick={() => {
+                navigate("/checkout");
+              }}
+              color="primary"
+            >
+              Check Out
+            </Button>
+          ) : (
+            ""
+          )}
         </StyledPaper>
       </Wrapper>
     </>

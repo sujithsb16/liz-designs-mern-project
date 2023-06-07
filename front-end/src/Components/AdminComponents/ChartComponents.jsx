@@ -6,125 +6,72 @@ import {
   BarController,
   BarElement,
 } from "chart.js";
-// import styles from "./ChartComponent.css";
-// import { format } from "date-fns";
-import styles from "./ChartComponent.css";
-import { graphDataApi } from "../../apiCalls/adminApiCalls";
+import { getChartData } from "../../apiCalls/adminApiCalls";
 
 Chart.register(CategoryScale, LinearScale, BarController, BarElement);
 
 const ChartComponent = () => {
-  const [data, setData] = useState([]);
   const chartRef = useRef(null);
+  const [data, setData] = useState([]);
+  const [chartInstance, setChartInstance] = useState(null);
 
   useEffect(() => {
-    const graphData = async () => {
-      const res = await graphDataApi();
-      setData(res);
-      console.log(res);
-      console.log(data);
+    const fetchData = async () => {
+      try {
+        const res = await getChartData();
+        setData(res.data);
+      } catch (error) {
+        console.error("Error fetching chart data:", error);
+      }
     };
-    graphData();
+    fetchData();
   }, []);
 
   useEffect(() => {
-    const canvas = chartRef.current;
-    const ctx = canvas.getContext("2d");
+    if (data.length === 0) return;
 
-    // Extracting unique categories
-    const categories = [
-      ...new Set(data.map((item) => item.categoryId.category)),
-    ];
+    if (chartInstance) {
+      chartInstance.destroy(); // Destroy the previous chart instance
+    }
 
-    const datasets = categories.map((category) => {
-      // Filtering data for each category
-      const categoryData = data.filter(
-        (item) => item.categoryId.category === category
-      );
-
-      return {
-        label: category,
-        data: categoryData.map((item) => item.sales),
-        backgroundColor: "rgba(54, 162, 235, 0.2)",
-        borderColor: "rgba(54, 162, 235, 1)",
-        borderWidth: 1,
-        hoverBackgroundColor: "rgba(54, 162, 235, 0.4)",
-        hoverBorderColor: "rgba(54, 162, 235, 1)",
-        fill: false,
-      };
-    });
-    let chartInstance = new Chart(ctx, {
+    const ctx = chartRef.current.getContext("2d");
+    const newChartInstance = new Chart(ctx, {
       type: "bar",
       data: {
-        labels: categories,
-        datasets,
+        labels: data.map((item) => item.category),
+        datasets: [
+          {
+            label: "Sales",
+            data: data.map((item) => item.sales),
+            backgroundColor: "rgba(75, 192, 192, 0.2)",
+            borderColor: "rgba(75, 192, 192, 1)",
+            borderWidth: 1,
+          },
+        ],
       },
       options: {
-        responsive: true,
-        maintainAspectRatio: false,
         scales: {
-          y: {
-            title: {
-              display: true,
-              text: "Product Sales",
-              font: {
-                weight: "bold",
-                size: 15,
-                color: "#5E4955",
-              },
-            },
-            ticks: {
-              beginAtZero: true,
-              font: {
-                weight: "bold",
-                size: 13,
-              },
-            },
-          },
           x: {
-            title: {
-              display: true,
-              text: "Product Category",
-              font: {
-                weight: "bold",
-                size: 15,
-              },
-            },
-            ticks: {
-              beginAtZero: true,
-              font: {
-                weight: "bold",
-                size: 13,
-                color: "#5E4955",
-              },
-            },
+            type: "category",
+            offset: true,
+          },
+          y: {
+            beginAtZero: true,
           },
         },
-        barThickness: 30,
       },
     });
 
-    return () => {
-      chartInstance.destroy();
-    };
+    setChartInstance(newChartInstance);
   }, [data]);
 
   return (
-    <div
-      className={styles.chartContainer}
-      style={{
-        maxWidth: "600px",
-        maxHeight: "500px",
-        height: "400px",
-        minWidth: "350px",
-        marginTop:"10rem",
-        marginLeft:"-30rem"
-      }}
-    >
-      <canvas ref={chartRef} className={styles.chartCanvas} />
+    <div>
+      <h2>Category Data</h2>
+
+      <canvas ref={chartRef} />
     </div>
   );
 };
-
 
 export default ChartComponent;

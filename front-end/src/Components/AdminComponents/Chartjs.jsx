@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useRef } from "react";
-import adminApiCalls from "../../EndPoints/adminApiCalls";
 import {
   Chart,
   CategoryScale,
@@ -7,109 +6,71 @@ import {
   BarController,
   BarElement,
 } from "chart.js";
-import styles from "./ChartComponent.css";
-import { format } from "date-fns";
+import { getChartData } from "../../apiCalls/adminApiCalls";
 
 Chart.register(CategoryScale, LinearScale, BarController, BarElement);
 
-const ChartComponent = () => {
-  const [data, setData] = useState([]);
+const Chartjs = () => {
   const chartRef = useRef(null);
+  const [data, setData] = useState([]);
+  const [chartInstance, setChartInstance] = useState(null);
 
   useEffect(() => {
-    const graphData = async () => {
-      const res = await adminApiCalls.graphData();
-      setData(res);
+    const fetchData = async () => {
+      try {
+        const res = await getChartData();
+        setData(res.orderData);
+      } catch (error) {
+        console.error("Error fetching chart data:", error);
+      }
     };
-    graphData();
+    fetchData();
   }, []);
 
   useEffect(() => {
-    const canvas = chartRef.current;
-    const ctx = canvas.getContext("2d");
-    let chartInstance = new Chart(ctx, {
+    if (data.length === 0) return;
+
+    if (chartInstance) {
+      chartInstance.destroy(); // Destroy the previous chart instance
+    }
+
+    const ctx = chartRef.current.getContext("2d");
+    const newChartInstance = new Chart(ctx, {
       type: "bar",
       data: {
-        labels: data.map((item) => format(new Date(item.date), "dd-MM-yyyy")),
+        labels: data.map((item) => item._id),
         datasets: [
           {
-            label: "Total Cost",
-            data: data.map((item) => item.total),
-            backgroundColor: "rgba(54, 162, 235, 0.2)",
-            borderColor: "rgba(54, 162, 235, 1)",
+            label: "Order Count",
+            data: data.map((item) => item.orderCount),
+            backgroundColor: "rgba(75, 192, 192, 0.2)",
+            borderColor: "rgba(75, 192, 192, 1)",
             borderWidth: 1,
-            hoverBackgroundColor: "rgba(54, 162, 235, 0.4)",
-            hoverBorderColor: "rgba(54, 162, 235, 1)",
-
-            fill: false,
           },
         ],
       },
       options: {
-        responsive: true,
-        maintainAspectRatio: false,
         scales: {
-          y: {
-            title: {
-              display: true,
-              text: "Rupees",
-              font: {
-                weight: "bold",
-                size: 15,
-                color: "#5E4955",
-              },
-            },
-            ticks: {
-              beginAtZero: true,
-              font: {
-                weight: "bold",
-                size: 13,
-              },
-            },
-          },
           x: {
-            title: {
-              display: true,
-              text: "Date",
-              font: {
-                weight: "bold",
-                size: 15,
-              },
-            },
-            ticks: {
-              beginAtZero: true,
-              font: {
-                weight: "bold",
-                size: 13,
-                // color:'rgba(54, 162, 235, 0.2)'
-                color: "#5E4955",
-              },
-            },
+            type: "category",
+            offset: true,
+          },
+          y: {
+            beginAtZero: true,
           },
         },
-        barThickness: 30,
       },
     });
 
-    return () => {
-      chartInstance.destroy();
-    };
+    setChartInstance(newChartInstance);
   }, [data]);
 
   return (
-    <div
-      className={styles.chartContainer}
-      style={{
-        maxWidth: "600px",
-        maxHeight: "500px",
-        height: "400px",
-        minWidth: "350px",
-      }}
-    >
-      {/* <h2>DAILY BOOKINGS </h2> */}
-      <canvas ref={chartRef} className={styles.chartCanvas} />
+    <div>
+      <h2>Order Data</h2>
+      <canvas ref={chartRef} />
     </div>
   );
 };
 
-export default ChartComponent;
+export default Chartjs;

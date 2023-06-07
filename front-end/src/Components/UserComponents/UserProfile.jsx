@@ -13,6 +13,7 @@ import {
   Stack,
   styled,
   Divider,
+  Rating,
 
 
 } from "@mui/material";
@@ -22,7 +23,7 @@ import TableCell, { tableCellClasses } from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
-import { UserProfileApi, addAddressApi, cancelOrder, updateUserApi, userCouponActivate, userCouponList } from "../../apiCalls/userApiCalls";
+import { UserProfileApi, addAddressApi, cancelOrder, productRateApi, returnOrder, updateUserApi, userCouponActivate, userCouponList } from "../../apiCalls/userApiCalls";
 import { useDispatch, useSelector } from "react-redux";
 import { userAddressSchema, userUpdateSchema } from "../../schema/Validation";
 import { useFormik } from "formik";
@@ -82,6 +83,7 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 
 const UserProfile = () => {
 const dispatch = useDispatch();
+
   ////////////// validation///////////////
   
   const formikUser =
@@ -139,6 +141,8 @@ const dispatch = useDispatch();
   const [user, setUser] = useState("");
   const [orders, setOrders] = useState([])
   const [order, setOrder] = useState("");
+  const [ratings, setRatings] = useState({});
+
   ///////////////////////////////////////////////////
   const token = useSelector((state) => state.userLogin.userInfo.token);
   const userInfo =  useSelector((state) => state.userLogin.userInfo)
@@ -226,6 +230,8 @@ const handleViewOrder = async (orderId) => {
 
  const handleClose = () => {
    setOpen(false);
+   setRatings({})
+   setOrder("")
  };
 
 ////////////////////////////////////////////////////
@@ -259,6 +265,71 @@ const handleCancelOrder = async(orderId) => {
 }
 
 
+const handleReturnOrder = async (orderId) => {
+  try {
+    handleClose();
+    setLoading(true);
+    const result = await returnOrder(token, orderId, setLoading);
+    if (result.data) {
+      console.log("test 4 ");
+      console.log(result.data);
+      setCouponSuccess(!couponSuccess);
+      toast.error("order return requested", { icon: "" });
+      // setCoupons(result.data); // set only first 4 elements
+    } else {
+      setError(true);
+      setTimeout(() => {
+        setError(false);
+      }, 4000);
+      setLoading(false);
+      console.log(result);
+    }
+    setLoading(false);
+  } catch (error) {
+    console.log(error.message);
+  }
+};
+
+
+///////////////////////////////////////////////////
+
+//////////////////rate/////////////////////////////
+
+const handleRatingChange = (index, newValue) => {
+  const updatedRatings = [...ratings];
+  updatedRatings[index] = newValue;
+  setRatings(updatedRatings);
+};
+
+const handleRating = async(productId)=>{
+ try {
+
+  // handleClose()
+     setLoading(true);
+     const rate = ratings[productId];
+     const result = await productRateApi(token,rate, productId, setLoading);
+     if (result.status === 200) {
+       console.log("test 4 ");
+       console.log(result.data);
+       setCouponSuccess(!couponSuccess);
+       toast.success("Rating Added")
+       // setCoupons(result.data); // set only first 4 elements
+     } else {
+       setError(true);
+       setTimeout(() => {
+         setError(false);
+       }, 4000);
+       setLoading(false);
+       console.log(result);
+     }
+     setLoading(false);
+
+  
+ } catch (error) {
+  
+ }
+}
+
 ///////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////
@@ -272,6 +343,7 @@ const handleCancelOrder = async(orderId) => {
         setCoupons(result.data.coupons);
         setUser(result.data.user);
         setOrders(result.data.orders);
+        
       } else {
         setError(true);
         setTimeout(() => {
@@ -308,10 +380,24 @@ const couponActivate = async(couponId) => {
 
 }
 
+useEffect(() => {
+  if (order?.products?.items) {
+    const initialRatings = {};
+    console.log("hai");
+    order.products.items.forEach((item) => {
+      initialRatings[item.productId._id] = item.productId.rating || 0;
+    });
+    setRatings(initialRatings);
+  }
+}, [order]);
+
+console.log(ratings);
+
 
 ///////////////////////////////////////////////////////
   useEffect(() => {
     userProfile();
+    
     // getUser();
   }, [userProfile, addAddressSuccess, couponSuccess]);
 
@@ -331,6 +417,7 @@ console.log(orders);
           minHeight: "90vh",
         }}
       >
+        <Toaster />
         <Paper
           sx={{
             width: { xs: "100%", sm: "80%", md: "60%" },
@@ -662,7 +749,7 @@ console.log(orders);
               sx={{
                 display: "flex",
                 flexDirection: "column",
-                p: 3,
+                p: 1,
                 backgroundColor: "info.main",
               }}
             >
@@ -779,6 +866,10 @@ console.log(orders);
                 <DialogContentText sx={{ fontFamily: "Roboto" }}>
                   <b>Order Date:</b> {new Date(order.createdAt).toDateString()}
                 </DialogContentText>
+                <DialogContentText sx={{ fontFamily: "Roboto" }}>
+                  <b>Address:</b> {order.address}, {order.city}, {order.state},{" "}
+                  {order.zip}
+                </DialogContentText>
                 <DialogContentText
                   sx={{ fontFamily: "Roboto", fontWeight: "bold" }}
                 >
@@ -812,6 +903,52 @@ console.log(orders);
                         Total: ₹{item.productId.price * item.qty}
                       </p>
                     </div>
+                    <Box
+                      sx={{
+                        width: "60%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      {order.status === "cancelled" ||
+                      order.status === "Delivered" ||
+                      order.status === "Return Requested" ? (
+                        <>
+                          {Object.keys(ratings).length > 0 && (
+                            <>
+                              <Rating
+                                name={`rating-${item.productId._id}`} // Use a unique name for each Rating component
+                                value={ratings[item.productId._id]} // Access the rating value using the product ID as the key
+                                onChange={(event, newValue) => {
+                                  const updatedRatings = { ...ratings };
+                                  updatedRatings[item.productId._id] = newValue;
+                                  setRatings(updatedRatings);
+                                }}
+                              />
+                              <Button
+                                onClick={() => handleRating(item.productId._id)}
+                                variant="contained"
+                                size="small"
+                                sx={{
+                                  borderRadius: 10,
+                                  fontSize: "12px",
+                                  fontFamily: "Inria Serif",
+                                }}
+                              >
+                                Rate
+                              </Button>
+                            </>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          {Object.keys(ratings).length > 0 && (
+                            <Rating value={item.productId.rating} readOnly /> // Display a different rating representation for non-cancelled orders
+                          )}
+                        </>
+                      )}
+                    </Box>
                   </div>
                 ))}
               </>
@@ -820,12 +957,19 @@ console.log(orders);
 
           <DialogActions>
             <Button onClick={handleClose}>Close</Button>
-            <Button
-              disabled={order.status === "cancelled" ? true : false}
-              onClick={() => handleCancelOrder(order._id)}
-            >
-              Cancel Order
-            </Button>
+
+            {order.status !== "cancelled" &&
+              order.status !== "Delivered" &&
+              order.status !== "Return Requested" && (
+                <Button onClick={() => handleCancelOrder(order._id)}>
+                  Cancel Order
+                </Button>
+              )}
+            {order.status === "Delivered" && (
+              <Button onClick={() => handleReturnOrder(order._id)}>
+                Return Order
+              </Button>
+            )}
           </DialogActions>
         </Dialog>
       </Box>

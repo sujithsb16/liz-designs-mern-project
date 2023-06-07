@@ -158,98 +158,78 @@ const allUserList = useCallback(async () => {
 
   return (
     <>
-      <Box
-        spacing={4}
-        sx={{
-          width: "100%",
-          paddindTop: "5rem",
-          overflowX: "auto", // Add horizontal scrolling for smaller screens
-          "&::-webkit-scrollbar": {
-            height: "0.4rem",
-          },
-          "&::-webkit-scrollbar-thumb": {
-            backgroundColor: "#c4c4c4",
-          },
-        }}
-      >
+      <Box sx={{ width: "100%", padding: "1rem" }}>
         <Toaster toasterOptions={{ duratiom: 4000 }} />
-        <Box
-          sx={{
-            borderBottom: 1,
-            borderColor: "divider",
-            paddingTop: "2vh",
-            justifyContent: "center",
-            width: "100%", // Update to use 100% width
-            maxWidth: "69.5rem", // Add maxWidth for better responsiveness
-            margin: "0 auto", // Center align the container
-            overflowX: "hidden", // Add horizontal scrolling for smaller screens
-            "@media (min-width: 960px)": {
-              overflowX: "hidden", // Hide horizontal scrollbar for screens wider than 960px
-            },
-          }}
-        >
+
+        {loading ? (
+          <Loading />
+        ) : (
           <TableContainer
             component={Paper}
             sx={{
+              marginTop: "5rem",
               height: "100%",
-
-              marginLeft: "0.5rem",
+              width: "100%", // Set the container width to 100% to occupy the available space
+              marginLeft: "0",
+              overflowX: "auto", // Add horizontal scrolling for smaller screens
+              "&::-webkit-scrollbar": {
+                height: "0.4rem",
+              },
+              "&::-webkit-scrollbar-thumb": {
+                backgroundColor: "#c4c4c4",
+              },
             }}
           >
-            {loading ? (
-              <Loading />
-            ) : (
-              <Table sx={{ minWidth: 700 }} aria-label="customized table">
-                <TableHead>
-                  <TableRow>
-                    <StyledTableCell>Name</StyledTableCell>
-                    <StyledTableCell align="center">Mobile</StyledTableCell>
-                    <StyledTableCell align="center">Email</StyledTableCell>
-                    {/* <StyledTableCell align="center">Carbs&nbsp;(g)</StyledTableCell> */}
-                    <StyledTableCell align="center">
-                      Block/Unblock
-                    </StyledTableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {userList?.map((user) => (
-                    <StyledTableRow key={user._id}>
-                      <>
-                        <StyledTableCell component="th" scope="row">
-                          {user.firstName}
-                        </StyledTableCell>
-                        <StyledTableCell align="center">
-                          {user.mobile}
-                        </StyledTableCell>
-                        <StyledTableCell align="center">
-                          {user.email}
-                        </StyledTableCell>
-                        {/* <StyledTableCell align="center">{row.carbs}</StyledTableCell> */}
-                        <StyledTableCell align="center">
-                          <Button
-                            variant="contained"
-                            color={user.isBlocked ? "error" : "success"}
-                            sx={{
-                              width: "6rem", // Set the desired width for the button
-                              "@media (max-width: 960px)": {
-                                width: "10vw", // Set the desired width for smaller screens
-                              },
-                            }}
-                            onClick={() => {
-                              handleUserBlock(user._id, user.isBlocked);
-                            }}
-                          >
-                            {!user.isBlocked ? "UnBlock" : "Block"}
-                          </Button>
-                        </StyledTableCell>
-                      </>
-                    </StyledTableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
+            <Table sx={{ minWidth: 700 }} aria-label="customized table">
+              <TableHead>
+                <TableRow>
+                  <StyledTableCell>Name</StyledTableCell>
+                  <StyledTableCell align="center">Mobile</StyledTableCell>
+                  <StyledTableCell align="center">Email</StyledTableCell>
+                  {/* <StyledTableCell align="center">Carbs&nbsp;(g)</StyledTableCell> */}
+                  <StyledTableCell align="center">
+                    Block/Unblock
+                  </StyledTableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {userList?.map((user) => (
+                  <StyledTableRow key={user._id}>
+                    <>
+                      <StyledTableCell component="th" scope="row">
+                        {user.firstName}
+                      </StyledTableCell>
+                      <StyledTableCell align="center">
+                        {user.mobile}
+                      </StyledTableCell>
+                      <StyledTableCell align="center">
+                        {user.email}
+                      </StyledTableCell>
+                      {/* <StyledTableCell align="center">{row.carbs}</StyledTableCell> */}
+                      <StyledTableCell align="center">
+                        <Button
+                          variant="contained"
+                          color={user.isBlocked ? "error" : "success"}
+                          sx={{
+                            width: "6rem", // Set the desired width for the button
+                            "@media (max-width: 960px)": {
+                              width: "10vw", // Set the desired width for smaller screens
+                            },
+                          }}
+                          onClick={() => {
+                            handleUserBlock(user._id, user.isBlocked);
+                          }}
+                        >
+                          {!user.isBlocked ? "UnBlock" : "Block"}
+                        </Button>
+                      </StyledTableCell>
+                    </>
+                  </StyledTableRow>
+                ))}
+              </TableBody>
+            </Table>
           </TableContainer>
-        </Box>
+        )}
       </Box>
     </>
   );

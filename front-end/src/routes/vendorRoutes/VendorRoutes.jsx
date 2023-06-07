@@ -7,6 +7,7 @@ import VendorRequestPendingPage from '../../pages/VendorPages/VendorRequestPendi
 import VendorHomePage from '../../pages/VendorPages/VendorHomePage';
 import VendorAddProductsPage from '../../pages/VendorPages/VendorAddProductsPage';
 import VendorOrderPage from '../../pages/VendorPages/VendorOrderPage';
+import VendorDashboard from '../../pages/VendorPages/VendorDashboard';
 const VendorRoutes = () => {
 
     
@@ -33,6 +34,10 @@ const VendorRoutes = () => {
           <Route
             path="/vendor/orders"
             element={<VendorOrderPage />}
+          />
+          <Route
+            path="/vendor/dashboard"
+            element={<VendorDashboard />}
           />
         </Routes>
       </BrowserRouter>

@@ -210,3 +210,22 @@ export const orderStatusControl = async (id, token, setLoading) => {
 };
 ///////////////order end////////////
 
+export const vendorChartApi = async (token, setLoading) => {
+  try {
+    const config = {
+      headers: { Authorization: `Bearer ${token}` },
+    };
+    const response = await axiosVendorInstance.get("/getchart", config);
+    console.log(response);
+    return response;
+  } catch (error) {
+    const errorIs =
+      error.response && error.response.data.message
+        ? error.response.data.message
+        : error.message;
+    setLoading(false);
+    console.log("vendor apiCalls error - " + errorIs);
+    return errorIs;
+  }
+};
+

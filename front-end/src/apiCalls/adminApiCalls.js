@@ -527,6 +527,37 @@ export const orderStatusControl = async (id, token, setLoading,status) => {
     return errorIs;
   }
 };
+export const ConfirmReturnOrder = async (token, id, setLoading) => {
+  try {
+    console.log("token" + token);
+    const config = {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    const status = true
+
+    const response = await axiosAdminInstance.patch(
+      `/orderreturnconfirm/${id}`,
+      { status },
+      config
+    );
+
+    console.log("blocksucess2");
+    console.log("response " + response);
+    return response;
+  } catch (error) {
+    const errorIs =
+      error.response && error.response.data.message
+        ? error.response.data.message
+        : error.message;
+    setLoading(false);
+    console.log("admin apiCalls error - " + errorIs);
+    return errorIs;
+  }
+};
 export const orderDeliverApi = async (id, token, setLoading) => {
   try {
     console.log("token" + token);
@@ -559,12 +590,10 @@ export const orderDeliverApi = async (id, token, setLoading) => {
 ///////////////order api end/////////
 
 /////////////graph//////////////////
-export const graphDataApi = async () => {
+export const getChartData = async () => {
   try {
-   
     const response = await axiosAdminInstance.get("/graphdata");
     console.log(response);
-
 
     return response.data;
   } catch (error) {

@@ -1,5 +1,5 @@
 const express = require("express");
-const { registerUser, userLogin, getProduct, getSingletProduct, addToCart, getCart, activateCoupon, updateUser, userProfile, addAddress, deleteCart, pagination, getUser, editCart, addToWishlist, getwishlist, deleteWishlist, addCartDeleteWishlist, getBanner, buildOrder, cancelOrder, payment, deleteAddress, getOrderDetails } = require("../controllers/userControllers");
+const { registerUser, userLogin, getProduct, getSingletProduct, addToCart, getCart, activateCoupon, updateUser, userProfile, addAddress, deleteCart, pagination, getUser, editCart, addToWishlist, getwishlist, deleteWishlist, addCartDeleteWishlist, getBanner, buildOrder, cancelOrder, payment, deleteAddress, getOrderDetails, rateProduct, returnOrder } = require("../controllers/userControllers");
 const {  userProtect } = require("../middlewares/authMiddleware");
 
 const router = express.Router();
@@ -35,6 +35,8 @@ router
 
   router.route("/orderproduct").post(userProtect, buildOrder);
 router.route("/cancelorder/:id").patch(userProtect, cancelOrder);
+router.route("/returnorder/:id").patch(userProtect, returnOrder);
+router.route("/rateproduct/:id").patch(userProtect, rateProduct);
 
 router.route("/payment/create").post( payment);
 

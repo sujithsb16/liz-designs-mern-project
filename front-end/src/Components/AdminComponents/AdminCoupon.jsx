@@ -236,13 +236,6 @@ useEffect(() => {
         sx={{
           width: "100%",
           paddindTop: "5rem",
-          overflowX: "auto", // Add horizontal scrolling for smaller screens
-          "&::-webkit-scrollbar": {
-            height: "0.4rem",
-          },
-          "&::-webkit-scrollbar-thumb": {
-            backgroundColor: "#c4c4c4",
-          },
         }}
       >
         <Toaster toasterOptions={{ duratiom: 4000 }} />
@@ -346,26 +339,35 @@ useEffect(() => {
         </Dialog>
 
         <Box
-          sx={{
-            borderBottom: 1,
-            borderColor: "divider",
-            paddingTop: "2vh",
-            justifyContent: "center",
-            width: "100%", // Update to use 100% width
-            maxWidth: "69.5rem", // Add maxWidth for better responsiveness
-            margin: "0 auto", // Center align the container
-            overflowX: "hidden", // Add horizontal scrolling for smaller screens
-            "@media (min-width: 960px)": {
-              overflowX: "hidden", // Hide horizontal scrollbar for screens wider than 960px
-            },
-          }}
+          sx={{ padding: 1 }}
+          // sx={{
+          //   borderBottom: 1,
+          //   borderColor: "divider",
+          //   paddingTop: "2vh",
+          //   justifyContent: "center",
+          //   width: "100%", // Update to use 100% width
+          //   maxWidth: "69.5rem", // Add maxWidth for better responsiveness
+          //   margin: "0 auto", // Center align the container
+          //   overflowX: "hidden", // Add horizontal scrolling for smaller screens
+          //   "@media (min-width: 960px)": {
+          //     overflowX: "hidden", // Hide horizontal scrollbar for screens wider than 960px
+          //   },
+          // }}
         >
           <TableContainer
             component={Paper}
             sx={{
+              marginTop: "1rem",
               height: "100%",
-
-              marginLeft: "0.5rem",
+              width: "100%", // Set the container width to 100% to occupy the available space
+              marginLeft: "0",
+              overflowX: "auto", // Add horizontal scrolling for smaller screens
+              "&::-webkit-scrollbar": {
+                height: "0.4rem",
+              },
+              "&::-webkit-scrollbar-thumb": {
+                backgroundColor: "#c4c4c4",
+              },
             }}
           >
             <Table aria-label="customized table">

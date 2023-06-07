@@ -112,7 +112,7 @@ const Checkout = () => {
   const [activatedCoupons, setActivatedCoupons] = useState([])
   const [user, setUser] = useState("");
   const [cartItems, setCartItems] = useState([]);
-  const [totalPrice, setTotalPrice] = useState(0);
+  const [totalPrice, setTotalPrice] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState("")
   const [discount, setDiscount] = useState("")
   const [clientSecret, setClientSecret] = useState("")
@@ -318,82 +318,101 @@ console.log( appliedCoupon);
 
   ///////////////////order management//////////////////
 
-  const handlePlaceOrder = async() =>{
-    try {
-      setLoading(true);
-      console.log(selectedAddress);
-      const orderAddress = addresses[selectedAddress];
+ const handlePlaceOrder = async () => {
+   try {
+     setLoading(true);
+     console.log(selectedAddress);
+     const orderAddress = addresses[selectedAddress];
 
-      if (paymentMethod === "credit_card"){
-const result = await buildOrder(
-  token,
-  totalPrice,
-  orderAddress,
-  appliedCoupon,
-  discount,
-  paymentMethod,
-  setLoading
-);
-if (result) {
-  console.log("2000");
- await stripe.confirmCardPayment(clientSecret, {
-  payment_method:{
-    card:elements.getElement(CardElement)
-  }
-  
- }).then((result) => {
-  MySwal.fire({
-    icon: "success",
-    title: "Payment was successful",
-    time: 4000,
-  }).then(()=>navigate(`/orderdetails/${result.data.order._id}`)
-);
- }).catch((err) => console.warn(err))
-} else {
-  setError(true);
-  setTimeout(() => {
-    setError(false);
-  }, 4000);
-  setLoading(false);
-  console.log(result);
-}
-
-
-      }else{
-        const result = await buildOrder(
-          token,
-          totalPrice,
-          orderAddress,
-          appliedCoupon,
-          discount,
-          paymentMethod,
-          setLoading
-        );
-        console.log(result);
-        if (result.data) {
-          console.log("test 4 ");
-          console.log(result.data);
-           MySwal.fire({
-             icon: "success",
-             title: result.message,
-             time: 4000,
-           }).then(() => {
-             navigate(`/orderdetails/${result.data.order._id}`);
-           });
-        } else {
-          setError(true);
-          setTimeout(() => {
-            setError(false);
-          }, 4000);
-          setLoading(false);
-          console.log(result);
+     if (paymentMethod === "credit_card") {
+       await stripe
+         .confirmCardPayment(clientSecret, {
+           payment_method: {
+             card: elements.getElement(CardElement),
+           },
+         })
+         .then(async (result) => {
+           if (result.error) {
+             MySwal.fire({
+               icon: "warning",
+               title: "Payment Failed",
+               time: 4000,
+             }).then(() => {
+               navigate(`/orderdetails/${result.data.order._id}`);
+             });
+           } else {
+             const buildOrderResult = await buildOrder(
+               token,
+               totalPrice,
+               orderAddress,
+               appliedCoupon,
+               discount,
+               paymentMethod,
+               setLoading
+             );
+             if (buildOrderResult.data) {
+               MySwal.fire({
+                 icon: "success",
+                 title: "Payment was successful",
+                 time: 4000,
+               }).then(() => {
+                 navigate(`/orderdetails/${buildOrderResult.data.order._id}`);
+               });
+             } else {
+               setError(true);
+               setTimeout(() => {
+                 setError(false);
+               }, 4000);
+               setLoading(false);
+               console.log(buildOrderResult);
+             }
            }
-      }      
-       
-        setLoading(false);
-    } catch (error) {}
+         })
+         .catch((err) => {
+           console.error(err);
+           MySwal.fire({
+             icon: "warning",
+             title: "Payment Failed",
+             time: 4000,
+           })
+         });
+     } else {
+       const result = await buildOrder(
+         token,
+         totalPrice,
+         orderAddress,
+         appliedCoupon,
+         discount,
+         paymentMethod,
+         setLoading
+       );
+       console.log(result);
+       if (result.data) {
+         console.log("test 4 ");
+         console.log(result.data);
+         MySwal.fire({
+           icon: "success",
+           title: result.message,
+           time: 4000,
+         }).then(() => {
+           navigate(`/orderdetails/${result.data.order._id}`);
+         });
+       } else {
+         setError(true);
+         setTimeout(() => {
+           setError(false);
+         }, 4000);
+         setLoading(false);
+         console.log(result);
+       }
+     }
 
-  }
+     setLoading(false);
+   } catch (error) {}
+ };
+
+ console.log(cartItems);
+
 
   ////////////////////////////////////////////////////
 
@@ -417,6 +436,9 @@ if (result) {
 
      if (paymentMethod === "credit_card") {
        fetchClientSecret();
+     }
+     if (totalPrice===0){
+      navigate('/')
      }
    }, [totalPrice, paymentMethod]);
 
@@ -608,7 +630,7 @@ const addresses =  user.addresses
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {cartItems.map((item) => (
+                  { cartItems && cartItems?.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell
                         component="th"

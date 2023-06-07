@@ -244,22 +244,21 @@ const ProductTable = () => {
 
         <Box
           sx={{
-            borderBottom: 1,
-            borderColor: "divider",
-            paddingTop: "5rem",
+            display: "flex",
             justifyContent: "center",
+            width: "100%",
+            alignItems: "center",
+            marginTop: "5rem",
           }}
         >
           <Tabs
             value={value}
             onChange={handleChange}
-            aria-label="basic tabs example"
-            sx={{
-              margin: "auto",
-              display: "flex",
-              justifyContent: "center",
-              paddingLeft: "25rem",
-            }}
+            indicatorColor="secondary"
+            textColor="inherit"
+            variant="fullWidth"
+            aria-label="full width tabs example"
+            sx={{ width: { sm: "50rem", lg: "30vw" } }}
           >
             <Tab label="Verified" {...a11yProps(0)} />
             <Tab label="Verifiy Pending" {...a11yProps(1)} />
@@ -281,16 +280,29 @@ const ProductTable = () => {
             <TableContainer
               component={Paper}
               sx={{
-                marginTop: "-.5rem",
+                marginTop: "1rem",
                 height: "100%",
-                width: "69.5rem",
-                marginLeft: "-1rem",
+                width: "100%", // Set the container width to 100% to occupy the available space
+                marginLeft: "0",
+                overflowX: "auto", // Add horizontal scrolling for smaller screens
+                "&::-webkit-scrollbar": {
+                  height: "0.4rem",
+                },
+                "&::-webkit-scrollbar-thumb": {
+                  backgroundColor: "#c4c4c4",
+                },
               }}
+              // sx={{
+              //   marginTop: "-.5rem",
+              //   height: "100%",
+              //   width: "69.5rem",
+              //   marginLeft: "-1rem",
+              // }}
             >
               <Table sx={{ minWidth: 700 }} aria-label="customized table">
                 <TableHead>
                   <TableRow>
-                    <StyledTableCell>Name</StyledTableCell>
+                    <StyledTableCell align="center">Name</StyledTableCell>
                     <StyledTableCell align="center">Tailor</StyledTableCell>
                     <StyledTableCell align="center">Price</StyledTableCell>
                     <StyledTableCell align="center">Category</StyledTableCell>
@@ -303,7 +315,11 @@ const ProductTable = () => {
                     <StyledTableRow key={product._id}>
                       {product.isVerified ? (
                         <>
-                          <StyledTableCell component="th" scope="row">
+                          <StyledTableCell
+                            component="th"
+                            align="center"
+                            scope="row"
+                          >
                             {product.name}
                           </StyledTableCell>
                           <StyledTableCell align="center">
@@ -362,12 +378,12 @@ const ProductTable = () => {
           ) : (
             <TableContainer
               component={Paper}
-              sx={{
-                marginTop: "-.5rem",
-                height: "100%",
-                width: "69.5rem",
-                marginLeft: "-1.1rem",
-              }}
+              // sx={{
+              //   marginTop: "-.5rem",
+              //   height: "100%",
+              //   width: "69.5rem",
+              //   marginLeft: "-1.1rem",
+              // }}
             >
               <Table sx={{ minWidth: 700 }} aria-label="customized table">
                 <TableHead>

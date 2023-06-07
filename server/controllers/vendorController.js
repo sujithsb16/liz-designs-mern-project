@@ -7,6 +7,8 @@ const Category = require("../models/categoryModel");
 const Product = require("../models/productModel");
 const { generateToken } = require("../utils/generateToken");
 const Order = require("../models/orderModel");
+const mongoose = require("mongoose");
+
 // const Product = require("../models/productModel");
 
 
@@ -130,7 +132,7 @@ const addProduct = async (req, res) => {
       qty,
       image: imagesBuffer,
       categoryId: categoryId._id,
-      vendor: req.vendor._id,
+      vendor: req.vendorId,
     });
 
      res.status(200).json({
@@ -157,7 +159,7 @@ const getCategory = asyncHandler(async (req, res) => {
 });
 
 const getVendorProduct = asyncHandler(async (req, res) => {
-  const productList = await Product.find({ vendor: req.vendor._id }).populate({
+  const productList = await Product.find({ vendor: req.vendorId}).populate({
     path: "categoryId",
     select: "category",
   });
@@ -216,21 +218,22 @@ const productStatusControl = asyncHandler(async (req, res) => {
 
 const getOrder = asyncHandler(async (req, res) => {
   try {
-const orders = await Order.find().populate([
-  {
-    path: "products.items.productId",
-  },
-  {
-    path: "couponApplied",
-  },
-  {
-    path: "userId",
-  },
-]);
+const orders = await Order.find()
+  .populate([
+    {
+      path: "products.items.productId",
+    },
+    {
+      path: "couponApplied",
+    },
+    {
+      path: "userId",
+    },
+  ])
+  .sort({ createdAt: -1 });
 res.status(201).json(orders);    
   } catch (error) {
 
-    log
 
     res.status(500).json(error.message)
     
@@ -269,6 +272,52 @@ const orderStatusControl = asyncHandler(async (req, res) => {
 });
 /////////////////////////////////////
 
+const getChart = asyncHandler(async (req, res) => {
+  try {
+
+const vendorId = mongoose.Types.ObjectId.createFromHexString(req.vendorId);
+
+const data = await Product.aggregate([
+  {
+    $match: { vendor: vendorId },
+  },
+  {
+    $lookup: {
+      from: "categories", // Assuming the collection name for categories is "categories"
+      localField: "categoryId",
+      foreignField: "_id",
+      as: "category",
+    },
+  },
+  {
+    $unwind: "$category",
+  },
+  {
+    $group: {
+      _id: "$category.category",
+      sales: { $sum: "$sales" },
+    },
+  },
+  {
+    $project: {
+      name: "$_id",
+      sales: 1,
+      _id: 0,
+    },
+  },
+]);
+
+console.log(data);
+
+
+
+    res.status(201).json(data);
+  } catch (error) {
+    res.status(500).json(error.message);
+    console.log(error.message);
+  }
+});
+
 
 
 module.exports = {
@@ -281,4 +330,5 @@ module.exports = {
   productStatusControl,
   orderStatusControl,
   getOrder,
+  getChart,
 };

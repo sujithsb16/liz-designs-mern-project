@@ -313,7 +313,7 @@ const AddProducts = () => {
   ///////////////////////////////////////////
   return (
     <>
-      <Box sx={{ width: "100%", paddingLeft: "1rem" }}>
+      <Box sx={{ width: "100%" }}>
         <Box
           sx={{
             display: "flex",
@@ -331,6 +331,7 @@ const AddProducts = () => {
             textColor="inherit"
             variant="fullWidth"
             aria-label="full width tabs example"
+            sx={{ width: "30vw" }}
           >
             <Tab label="Products" {...a11yProps(0)} />
             <Tab label="Add Products" {...a11yProps(1)} />

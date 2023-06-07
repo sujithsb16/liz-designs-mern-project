@@ -351,6 +351,18 @@ const handleRemoveFromWishlist = async (productId) => {
                         >
                           {product.name}
                         </Typography>
+                        {hoveredIndex === product._id && (
+                          <Typography
+                            color="primary"
+                            variant="body2"
+                            sx={{
+                              fontFamily: "Inria Serif",
+                              marginTop: "10px",
+                            }}
+                          >
+                            Price: {product.price}
+                          </Typography>
+                        )}
                       </CardContent>
                     </Card>
                   </Grid>

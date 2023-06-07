@@ -516,6 +516,29 @@ export const cancelOrder = async (token, orderId, setLoading) => {
     return errorIs;
   }
 };
+export const returnOrder = async (token, orderId, setLoading) => {
+  try {
+    console.log("user api " + token);
+
+    const response = await axiosUserInstance.patch(
+      `/returnorder/${orderId}`,
+      null,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    console.log(response);
+    return response;
+  } catch (error) {
+    const errorIs =
+      error.response && error.response.data.message
+        ? error.response.data.message
+        : error.message;
+    // setLoading(false);
+    console.log("user apiCalls error - " + errorIs);
+    return errorIs;
+  }
+};
 export const paymentApi = async ( totalPrice,
         paymentToken,
         userToken,) => {
@@ -558,6 +581,30 @@ export const getOrderDetails = async (orderId, token) => {
         ? error.response.data.message
         : error.message;
     console.log("admin apiCalls error - " + errorIs);
+    return errorIs;
+  }
+};
+
+export const productRateApi = async (token, rate, productId, setLoading) => {
+  try {
+    console.log("user api " + token);
+
+    const response = await axiosUserInstance.patch(
+      `/rateproduct/${productId}`,
+      { rate },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    console.log(response);
+    return response;
+  } catch (error) {
+    const errorIs =
+      error.response && error.response.data.message
+        ? error.response.data.message
+        : error.message;
+    // setLoading(false);
+    console.log("user apiCalls error - " + errorIs);
     return errorIs;
   }
 };

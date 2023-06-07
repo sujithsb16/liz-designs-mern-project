@@ -31,11 +31,21 @@ const productSchema = new mongoose.Schema({
   },
   sales: {
     type: Number,
-   default:0,
+    default: 0,
   },
+  rating: {
+    type: Number,
+    default: 0,
+  },
+  ratedBy: [
+    {
+      type: mongoose.Types.ObjectId,
+      ref: "User",
+    },
+  ],
   qty: {
     type: Number,
-    },
+  },
   image: [
     {
       public_id: {
@@ -56,6 +66,18 @@ const productSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "vendor",
   },
+  productRating: [
+    {
+      user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+      rating: {
+        type: Number,
+        default: 0,
+      },
+    },
+  ],
 });
 
 

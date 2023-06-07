@@ -267,27 +267,26 @@ const allVendorList = useCallback(async() =>{
 
   return (
     <>
-      <Box sx={{ width: "100%", paddingLeft: "1rem" }}>
+      <Box sx={{ width: "100%", padding: "1rem" }}>
         <Toaster toasterOptions={{ duratiom: 4000 }} />
 
         <Box
           sx={{
-            borderBottom: 1,
-            borderColor: "divider",
-            paddingTop: "5rem",
+            display: "flex",
             justifyContent: "center",
+            width: "100%",
+            alignItems: "center",
+            marginTop:"5rem",
           }}
         >
           <Tabs
             value={value}
             onChange={handleChange}
-            aria-label="basic tabs example"
-            sx={{
-              margin: "auto",
-              display: "flex",
-              justifyContent: "center",
-              paddingLeft: "25rem",
-            }}
+            indicatorColor="secondary"
+            textColor="inherit"
+            variant="fullWidth"
+            aria-label="full width tabs example"
+            sx={{width:{sm:"50rem",lg:"30vw"}}}
           >
             <Tab label="Verified" {...a11yProps(0)} />
             <Tab label="Verifiy Pending" {...a11yProps(1)} />
@@ -296,24 +295,24 @@ const allVendorList = useCallback(async() =>{
         <TabPanel value={value} index={0}>
           {loading ? (
             <Loading
-              sx={{
-                // marginTop: "10rem",
-                height: "100%",
-                width: "69.5rem",
-                marginLeft: ".5rem",
-                justifyContent: "center",
-                alignItems: "center",
-              }}
+              // sx={{
+              //   // marginTop: "10rem",
+              //   height: "100%",
+              //   width: "69.5rem",
+              //   marginLeft: ".5rem",
+              //   justifyContent: "center",
+              //   alignItems: "center",
+              // }}
             />
           ) : (
             <TableContainer
               component={Paper}
-              sx={{
-                marginTop: "-.5rem",
-                height: "100%",
-                width: "69.5rem",
-                marginLeft: "-1.1rem",
-              }}
+              // sx={{
+              //   marginTop: "-.5rem",
+              //   height: "100%",
+              //   width: "69.5rem",
+              //   marginLeft: "-1.1rem",
+              // }}
             >
               <Table sx={{ minWidth: 700 }} aria-label="customized table">
                 <TableHead>

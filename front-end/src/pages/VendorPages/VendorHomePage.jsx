@@ -5,14 +5,14 @@ import VendorHome from '../../Components/VendorComponents/VendorHome';
 const VendorHomePage = () => {
 
   const homeCards = {
-    position: "relative",
-    margin: "0vw",
-    borderRadius: 5,
-    bgcolor: "warning.main",
-    height: "44vh",
-    width: "16.5vw",
-    marginLeft: "2.5rem",
-    marginTop: "10vh",
+    // position: "relative",
+    // margin: "0vw",
+    // borderRadius: 5,
+    // bgcolor: "warning.main",
+    // height: "44vh",
+    // width: "16.5vw",
+    // marginLeft: "2.5rem",
+    // marginTop: "10vh",
   };
 
   return (
